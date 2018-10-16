@@ -220,12 +220,20 @@ class CarController(object):
         can_sends.append(create_accel_command(self.packer, apply_accel, pcm_cancel_cmd, self.standstill_req))
       else:
         can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False))
-		
+
     if CS.CP.enableGasInterceptor:
         # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
         # This prevents unexpected pedal range rescaling
+      #send a gas value just to reset the standstill state on Prius
+      if CS.CP.carFingerprint == CAR.PRIUS:
+        if CS.pcm_acc_status == 7:
+          #presds the pedal until the cruise state changes
+          can_sends.append(create_gas_command(self.packer, 0.2))
+        else:
+          can_sends.append(create_gas_command(self.packer, apply_gas))
+      else:
         can_sends.append(create_gas_command(self.packer, apply_gas))
-		
+
     if frame % 10 == 0 and ECU.CAM in self.fake_ecus and self.car_fingerprint not in NO_DSU_CAR:
       for addr in TARGET_IDS:
         can_sends.append(create_video_target(frame/10, addr))
