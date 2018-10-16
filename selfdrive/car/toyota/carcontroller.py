@@ -227,8 +227,9 @@ class CarController(object):
       #send a gas value just to reset the standstill state on Prius
       if CS.CP.carFingerprint == CAR.PRIUS:
         if CS.pcm_acc_status == 7:
-          #presds the pedal until the cruise state changes
+          #should quickly tap the pedal
           can_sends.append(create_gas_command(self.packer, 0.2))
+          can_sends.append(create_gas_command(self.packer, 0.0))
         else:
           can_sends.append(create_gas_command(self.packer, apply_gas))
       else:
