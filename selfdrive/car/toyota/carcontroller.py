@@ -31,6 +31,8 @@ TARGET_IDS = [0x340, 0x341, 0x342, 0x343, 0x344, 0x345,
               0x373, 0x374, 0x375, 0x380, 0x381, 0x382,
               0x383]
 
+#counter for Prius Prime Pedal... PPP
+counter = 0
 
 def accel_hysteresis(accel, accel_steady, enabled):
 
@@ -224,14 +226,14 @@ class CarController(object):
     if CS.CP.enableGasInterceptor:
         # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
         # This prevents unexpected pedal range rescaling
-      #send a gas value just to reset the standstill state on Prius
-      if CS.CP.carFingerprint == CAR.PRIUS:
-        if CS.pcm_acc_status == 7:
-          #should quickly tap the pedal
-          can_sends.append(create_gas_command(self.packer, 0.2))
-          can_sends.append(create_gas_command(self.packer, 0.0))
-        else:
-          can_sends.append(create_gas_command(self.packer, apply_gas))
+      if CS.CP.carFingerprint == CAR.PRIUS and CS.pcm_acc_status == 7 and actuators.gas > 0:
+        counter = counter + 1
+        if counter <= 30:
+          can_sends.append(create_gas_command(self.packer, 0.3))
+        if counter > 30 < 60:
+          can_sends.append(create_gas_command(self.packer, 0))
+        if counter >= 60:
+          counter = 0
       else:
         can_sends.append(create_gas_command(self.packer, apply_gas))
 
