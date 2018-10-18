@@ -229,8 +229,8 @@ class CarController(object):
       if CS.CP.carFingerprint == CAR.PRIUS and CS.pcm_acc_status == 7 and actuators.gas > 0:
         global counter += 1
         if counter <= 30:
-          can_sends.append(create_gas_command(self.packer, apply_gas)
-        if counter > 30 < 60:
+          can_sends.append(create_gas_command(self.packer, apply_gas))
+        if counter > 30 and counter < 60:
           can_sends.append(create_gas_command(self.packer, 0))
         if counter >= 60:
           counter = 0
