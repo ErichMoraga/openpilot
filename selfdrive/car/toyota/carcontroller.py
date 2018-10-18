@@ -230,7 +230,7 @@ class CarController(object):
         global counter += 1
         if counter <= 30:
           can_sends.append(create_gas_command(self.packer, apply_gas))
-        if counter > 30 and counter < 60:
+        if 30 <= counter <= 60:
           can_sends.append(create_gas_command(self.packer, 0))
         if counter >= 60:
           counter = 0
