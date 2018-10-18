@@ -227,7 +227,8 @@ class CarController(object):
         # send exactly zero if apply_gas is zero. Interceptor will send the max between read value and apply_gas.
         # This prevents unexpected pedal range rescaling
       if CS.CP.carFingerprint == CAR.PRIUS and CS.pcm_acc_status == 7 and actuators.gas > 0:
-        global counter += 1
+        global counter
+        counter += 1
         if counter <= 30:
           can_sends.append(create_gas_command(self.packer, apply_gas))
         if 30 <= counter <= 60:
