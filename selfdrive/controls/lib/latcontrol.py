@@ -14,7 +14,8 @@ class LatControl(object):
   def __init__(self, CP):
     self.pid = PIController((CP.steerKpBP, CP.steerKpV),
                             (CP.steerKiBP, CP.steerKiV),
-                            k_f=CP.steerKf, pos_limit=1.0)
+                            k_f=CP.steerKf, k_d=CP.steerKd,
+                             pos_limit=1.0)
     self.last_cloudlog_t = 0.0
     self.angle_steers_des = 0.
 
