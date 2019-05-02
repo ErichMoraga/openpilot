@@ -1,4 +1,4 @@
-from selfdrive.controls.lib.pid import PIController
+from selfdrive.controls.lib.lat_pid import PIController
 from common.numpy_fast import interp
 from cereal import car
 
