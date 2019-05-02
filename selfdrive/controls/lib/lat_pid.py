@@ -111,7 +111,7 @@ class PIController(object):
          not freeze_integrator:
         self.i = i
 
-    control = self.p + self.f + self.i
+    control = self.p + self.f + self.i + self.d
     if self.convert is not None:
       control = self.convert(control, speed=self.speed)
 
