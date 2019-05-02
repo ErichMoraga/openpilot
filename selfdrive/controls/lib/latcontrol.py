@@ -1,4 +1,4 @@
-from selfdrive.controls.lib.lat_pid import PIController
+from selfdrive.controls.lib.lat_pid import LatPIController
 from common.numpy_fast import interp
 from cereal import car
 
@@ -12,7 +12,7 @@ def get_steer_max(CP, v_ego):
 
 class LatControl(object):
   def __init__(self, CP):
-    self.pid = PIController((CP.steerKpBP, CP.steerKpV),
+    self.pid = LatPIController((CP.steerKpBP, CP.steerKpV),
                             (CP.steerKiBP, CP.steerKiV),
                             k_f=CP.steerKf, k_d=CP.steerKd,
                              pos_limit=1.0)
