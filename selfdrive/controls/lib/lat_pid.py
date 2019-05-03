@@ -67,6 +67,7 @@ class LatPIController(object):
     self.p = 0.0
     self.i = 0.0
     self.f = 0.0
+    self.d = 0.0
     self.sat_count = 0.0
     self.saturated = False
     self.control = 0
