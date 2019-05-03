@@ -350,6 +350,7 @@ def data_send(plan, path_plan, CS, CI, CP, VM, state, events, actuators, v_cruis
     "upSteer": float(LaC.pid.p),
     "uiSteer": float(LaC.pid.i),
     "ufSteer": float(LaC.pid.f),
+    "udSteer": float(LaC.pid.d),
     "vTargetLead": float(v_acc),
     "aTarget": float(a_acc),
     "jerkFactor": float(plan.jerkFactor),

@@ -33,7 +33,7 @@ def dashboard_thread():
   steerpub = context.socket(zmq.PUSH)
   #steerpub.connect("tcp://kevo.live:8594")
   steerpub.connect("tcp://gernstation.synology.me:8594")
-  influxFormatString = user_id + ",sources=capnp angle_steers_des=;angle_steers=;steer_override=;v_ego=;p=;i=;f=;cumLagMs=; "
+  influxFormatString = user_id + ",sources=capnp angle_steers_des=;angle_steers=;steer_override=;v_ego=;p=;i=;f=;d=;cumLagMs=; "
   influxDataString = ""
 
   monoTimeOffset = 0
@@ -53,7 +53,7 @@ def dashboard_thread():
 
             influxDataString += ("%0.2f,%0.2f,%d,%0.1f,%0.4f,%0.4f,%0.4f,%0.2f,%d|" %
                 (l100.live100.angleSteersDes, l100.live100.angleSteers, l100.live100.steerOverride, vEgo,
-                l100.live100.upSteer, l100.live100.uiSteer, l100.live100.ufSteer, l100.live100.cumLagMs, receiveTime))
+                l100.live100.upSteer, l100.live100.uiSteer, l100.live100.ufSteer, l100.live100.udSteer, l100.live100.cumLagMs, receiveTime))
 
             frame_count += 1
 
