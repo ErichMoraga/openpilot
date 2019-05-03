@@ -51,7 +51,7 @@ def dashboard_thread():
             receiveTime = int((monoTimeOffset + l100.logMonoTime) * 0.0000002) * 5
           if vEgo > 0:
 
-            influxDataString += ("%0.2f,%0.2f,%d,%0.1f,%0.4f,%0.4f,%0.4f,%0.2f,%d|" %
+            influxDataString += ("%0.2f,%0.2f,%d,%0.1f,%0.4f,%0.4f,%0.4f,%0.4f,%0.2f,%d|" %
                 (l100.live100.angleSteersDes, l100.live100.angleSteers, l100.live100.steerOverride, vEgo,
                 l100.live100.upSteer, l100.live100.uiSteer, l100.live100.ufSteer, l100.live100.udSteer, l100.live100.cumLagMs, receiveTime))
 
