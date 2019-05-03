@@ -78,9 +78,9 @@ class LatPIController(object):
     now = _current_time()
     dt = now - self._last_time if now - self._last_time else 1e-16
 
-    if self.sample_time is not None and dt < self.sample_time and self._last_output is not None:
-        # only update every sample_time seconds
-        return self._last_output
+    #if self.sample_time is not None and dt < self.sample_time and self._last_output is not None:
+    #    # only update every sample_time seconds
+    #    return self._last_output
 
     d_input = measurement - (self._last_input if self._last_input is not None else measurement)
 
