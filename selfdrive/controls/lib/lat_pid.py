@@ -82,11 +82,16 @@ class LatPIController(object):
     #    # only update every sample_time seconds
     #    return self._last_output
 
+    self.angles = 0,1.2
+    self.Kps = (self.k_p * 2), self.k_p
+
+    self.varKp = interp(abs(setpoint), self.angles, self.Kps)
+
     d_input = measurement - (self._last_input if self._last_input is not None else measurement)
 
     error = float(apply_deadzone(setpoint - measurement, deadzone))
     if not self.proportional_on_measurement:
-        self.p = error * self.k_p
+        self.p = error * self.varKp
     else:
         self.p -= self.k_p * d_input
         # TODO: Test clipping of this val
