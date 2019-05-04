@@ -85,7 +85,7 @@ class LatPIController(object):
     self.angles = 0,1.2
     self.Kps = (self.k_p * 2), self.k_p
 
-    self.varKp = interp(abs(setpoint), self.angles, self.Kps)
+    self.varKp = interp(abs(measurement), self.angles, self.Kps)
 
     d_input = measurement - (self._last_input if self._last_input is not None else measurement)
 
