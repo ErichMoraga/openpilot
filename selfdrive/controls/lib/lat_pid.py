@@ -82,10 +82,13 @@ class LatPIController(object):
     #    # only update every sample_time seconds
     #    return self._last_output
 
-    self.angles = 0,1.2,10
+    self.anglesKp = 0,1.2,10
     self.Kps = (self.k_p * 2), self.k_p, (self.k_p / 2)
+    self.anglesKd = 0,1.2,10
+    self.Kds = 0, (self.k_d / 2), self.k_d
 
-    self.varKp = interp(abs(measurement), self.angles, self.Kps)
+    self.varKp = interp(abs(measurement), self.anglesKp, self.Kps)
+    self.varKd = interp(abs(measurement), self.anglesKd, self.Kds)
 
     d_input = measurement - (self._last_input if self._last_input is not None else measurement)
 
@@ -98,7 +101,7 @@ class LatPIController(object):
         #self.p = clip(self.k_p, self.neg_limit, self.pos_limit)
 
     self.f = feedforward * self.k_f
-    self.d = -self.k_d * d_input / dt #added derivative term
+    self.d = -self.varKd * d_input / dt #added derivative term
 
     if override:
       self.i -= self.i_unwind_rate * float(np.sign(self.i))
