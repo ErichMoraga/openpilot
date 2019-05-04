@@ -88,7 +88,7 @@ class CarInterface(object):
       ret.steerKf = 0.00008   # full torque for 10 deg at 80mph means 0.00007818594
       ret.steerKd = 0.005 # derivative gain https://youtu.be/4Y7zG48uHRo
       # TODO: Prius seem to have very laggy actuators. Understand if it is lag or hysteresis
-      ret.steerActuatorDelay = 0.12 # NOT calculated delay from Cabana https://discordapp.com/channels/469524606043160576/535599612099297280/573956259691102220
+      ret.steerActuatorDelay = 0.20 # NOT calculated delay from Cabana https://discordapp.com/channels/469524606043160576/535599612099297280/573956259691102220
 
     elif candidate in [CAR.RAV4, CAR.RAV4H]:
       stop_and_go = True if (candidate in CAR.RAV4H) else False
