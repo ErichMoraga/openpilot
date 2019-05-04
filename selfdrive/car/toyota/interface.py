@@ -80,7 +80,7 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 66  # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.70
-      ret.steerRatio = 13.40   # unknown end-to-end spec
+      ret.steerRatio = 13.40   # 13.4 is spec end-to-end
       tire_stiffness_factor = 0.725   # hand-tune
       ret.mass = 3375 * CV.LB_TO_KG + std_cargo
       ret.steerKiBP, ret.steerKpBP = [[13.0, 31.0], [13.0, 31.0]]
@@ -94,7 +94,7 @@ class CarInterface(object):
       stop_and_go = True if (candidate in CAR.RAV4H) else False
       ret.safetyParam = 73  # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.65
-      ret.steerRatio = 14.5   # 14.5 is spec end-to-end
+      ret.steerRatio = 14.50   # 14.5 is spec end-to-end
       tire_stiffness_factor = 0.725
       ret.mass = 3650 * CV.LB_TO_KG + std_cargo  # mean between normal and hybrid
       ret.steerKiBP, ret.steerKpBP = [[13.0, 31.0], [13.0, 31.0]]
