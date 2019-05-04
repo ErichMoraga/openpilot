@@ -82,7 +82,7 @@ class LatPIController(object):
     #    # only update every sample_time seconds
     #    return self._last_output
 
-    self.angles = 0,1.2,20
+    self.angles = 0,1.2,10
     self.Kps = (self.k_p * 2), self.k_p, (self.k_p / 2)
 
     self.varKp = interp(abs(measurement), self.angles, self.Kps)
