@@ -121,6 +121,15 @@ def radard_thread(gctx=None):
     l100 = None
     md = None
 
+    for socket, event in poller.poll(0):
+      if socket is live100:
+        l100 = messaging.recv_one(socket)
+      elif socket is model:
+        md = messaging.recv_one(socket)
+      elif socket is live_parameters_sock:
+        live_parameters = messaging.recv_one(socket)
+        VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner, live_parameters.liveParameters.steerRatioOuter)
+
     if l100 is not None:
       active = l100.live100.active
       v_ego = l100.live100.vEgo
@@ -131,15 +140,6 @@ def radard_thread(gctx=None):
       v_ego_hist_t.append(float(rk.frame)/rate)
 
       last_l100_ts = l100.logMonoTime
-
-    for socket, event in poller.poll(0):
-      if socket is live100:
-        l100 = messaging.recv_one(socket)
-      elif socket is model:
-        md = messaging.recv_one(socket)
-      elif socket is live_parameters_sock:
-        live_parameters = messaging.recv_one(socket)
-        VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner, live_parameters.liveParameters.steerRatioOuter)
 
     if v_ego is None:
       continue
