@@ -139,10 +139,7 @@ def radard_thread(gctx=None):
         md = messaging.recv_one(socket)
       elif socket is live_parameters_sock:
         live_parameters = messaging.recv_one(socket)
-        if abs(steer_angle) < 1.2:
-            VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner)
-        else:
-            VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioOuter)
+        VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner, live_parameters.liveParameters.steerRatioOuter)
 
     if v_ego is None:
       continue
