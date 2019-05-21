@@ -100,13 +100,14 @@ class Localizer(object):
 
 
 class ParamsLearner(object):
-  def __init__(self, VM, angle_offset=0., stiffness_factor=1.0, steer_ratio_inner=None, learning_rate=1.0):
+  def __init__(self, VM, angle_offset=0., stiffness_factor=1.0, steer_ratio_inner=None, steer_ratio_outer=None, learning_rate=1.0):
     self.VM = VM
 
     self.ao = math.radians(angle_offset)
     self.slow_ao = math.radians(angle_offset)
     self.x = stiffness_factor
     self.sRi = VM.sRi if steer_ratio_inner is None else steer_ratio_inner
+    self.sRo = VM.sRo if steer_ratio_outer is None else steer_ratio_outer
     self.MIN_SR = MIN_SR * self.VM.sRi
     self.MAX_SR = MAX_SR * self.VM.sRi
     self.MIN_SR_TH = MIN_SR_TH * self.VM.sRi
@@ -122,6 +123,7 @@ class ParamsLearner(object):
       'angleOffsetAverage': math.degrees(self.slow_ao),
       'stiffnessFactor': self.x,
       'steerRatioInner': self.sRi,
+      'steerRatioOuter': self.sRo,
     }
 
   def update(self, psi, u, sa):
@@ -135,9 +137,10 @@ class ParamsLearner(object):
     x = self.x
     ao = self.ao
     sRi = self.sRi
+    sRo = self.sRo
 
     # Gradient descent:  learn angle offset, tire stiffness and steer ratio.
-    if u > 10.0 and abs(math.degrees(sa)) < 15.:
+    if u > 10.0 and abs(math.degrees(sa)) < 1.2:
       self.ao -= self.alpha1 * 2.0*cF0*cR0*l*u*x*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
 
       ao = self.slow_ao
@@ -146,6 +149,15 @@ class ParamsLearner(object):
       self.x -= self.alpha3 * -2.0*cF0*cR0*l*m*u**3*(ao - sa)*(aF*cF0 - aR*cR0)*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**3)
 
       self.sRi -= self.alpha4 * -2.0*cF0*cR0*l*u*x*(ao - sa)*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**3*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
+    elif u > 10.0 and abs(math.degrees(sa)) < 15. and abs(math.degrees(sa)) > 1.2:
+      self.ao -= self.alpha1 * 2.0*cF0*cR0*l*u*x*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
+
+      ao = self.slow_ao
+      self.slow_ao -= self.alpha2 * 2.0*cF0*cR0*l*u*x*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
+
+      self.x -= self.alpha3 * -2.0*cF0*cR0*l*m*u**3*(ao - sa)*(aF*cF0 - aR*cR0)*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**3)
+
+      self.sRo -= self.alpha4 * -2.0*cF0*cR0*l*u*x*(ao - sa)*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**3*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
 
     if DEBUG:
       # s1 = "Measured yaw rate % .6f" % psi
@@ -161,10 +173,12 @@ class ParamsLearner(object):
     self.slow_ao = clip(self.slow_ao, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
     self.x = clip(self.x, MIN_STIFFNESS, MAX_STIFFNESS)
     self.sRi = clip(self.sRi, self.MIN_SR, self.MAX_SR)
+    self.sRo = clip(self.sRo, self.MIN_SR, self.MAX_SR)
 
     # don't check stiffness for validity, as it can change quickly if sRi is off
     valid = abs(self.slow_ao) < MAX_ANGLE_OFFSET_TH and \
-      self.sRi > self.MIN_SR_TH and self.sRi < self.MAX_SR_TH
+      self.sRi > self.MIN_SR_TH and self.sRi < self.MAX_SR_TH and \
+      self.sRo > self.MIN_SR_TH and self.sRo < self.MAX_SR_TH
 
     return valid
 
@@ -201,6 +215,7 @@ def locationd_thread(gctx, addr, disabled_logs):
       'angleOffsetAverage': 0.0,
       'stiffnessFactor': 1.0,
       'steerRatioInner': VM.sRi,
+      'steerRatioOuter': VM.sRo,
     }
     cloudlog.info("Parameter learner resetting to default values")
 
@@ -211,6 +226,7 @@ def locationd_thread(gctx, addr, disabled_logs):
                           angle_offset=params['angleOffsetAverage'],
                           stiffness_factor=params['stiffnessFactor'],
                           steer_ratio_inner=params['steerRatioInner'],
+                          steer_ratio_outer=params['steerRatioOuter'],
                           learning_rate=LEARNING_RATE)
 
   i = 0
@@ -240,6 +256,7 @@ def locationd_thread(gctx, addr, disabled_logs):
           params.liveParameters.angleOffsetAverage = float(math.degrees(learner.slow_ao))
           params.liveParameters.stiffnessFactor = float(learner.x)
           params.liveParameters.steerRatioInner = float(learner.sRi)
+          params.liveParameters.steerRatioOuter = float(learner.sRo)
           live_parameters_socket.send(params.to_bytes())
 
         if i % 6000 == 0:   # once a minute
