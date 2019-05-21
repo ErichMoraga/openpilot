@@ -79,7 +79,7 @@ class CarInterface(object):
       ret.wheelbase = 2.766
 
       # Values from optimizer
-      ret.steerRatio = 16.55  # 13.8 is spec end-to-end
+      ret.steerRatioInner = 16.55  # 13.8 is spec end-to-end
       tire_stiffness_factor = 0.82
 
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[9., 22.], [9., 22.]]
@@ -89,7 +89,7 @@ class CarInterface(object):
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 1985 + std_cargo
       ret.wheelbase = 2.78
-      ret.steerRatio = 14.4 * 1.1   # 10% higher at the center seems reasonable
+      ret.steerRatioInner = 14.4 * 1.1   # 10% higher at the center seems reasonable
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
       ret.minSteerSpeed = 0.
@@ -97,7 +97,7 @@ class CarInterface(object):
       ret.lateralTuning.pid.kf = 0.00006
       ret.mass = 1275 + std_cargo
       ret.wheelbase = 2.7
-      ret.steerRatio = 13.73   #Spec
+      ret.steerRatioInner = 13.73   #Spec
       tire_stiffness_factor = 0.385
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
@@ -106,7 +106,7 @@ class CarInterface(object):
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 2060 + std_cargo
       ret.wheelbase = 3.01
-      ret.steerRatio = 16.5
+      ret.steerRatioInner = 16.5
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.16], [0.01]]
       ret.minSteerSpeed = 35 * CV.MPH_TO_MS
@@ -114,7 +114,7 @@ class CarInterface(object):
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 3558 * CV.LB_TO_KG
       ret.wheelbase = 2.80
-      ret.steerRatio = 13.75
+      ret.steerRatioInner = 13.75
       tire_stiffness_factor = 0.5
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
@@ -122,7 +122,7 @@ class CarInterface(object):
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 1825 + std_cargo
       ret.wheelbase = 2.78
-      ret.steerRatio = 14.4 * 1.15   # 15% higher at the center seems reasonable
+      ret.steerRatioInner = 14.4 * 1.15   # 15% higher at the center seems reasonable
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
       ret.minSteerSpeed = 0.

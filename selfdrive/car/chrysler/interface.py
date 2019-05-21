@@ -71,7 +71,7 @@ class CarInterface(object):
 
     # Speed conversion:              20, 45 mph
     ret.wheelbase = 3.089  # in meters for Pacifica Hybrid 2017
-    ret.steerRatio = 16.2 # Pacifica Hybrid 2017
+    ret.steerRatioInner = 16.2 # Pacifica Hybrid 2017
     ret.mass = 2858 + std_cargo  # kg curb weight Pacifica Hybrid 2017
     ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[9., 20.], [9., 20.]]
     ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15,0.30], [0.03,0.05]]
@@ -81,7 +81,7 @@ class CarInterface(object):
 
     if candidate in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019):
       ret.wheelbase = 2.91  # in meters
-      ret.steerRatio = 12.7
+      ret.steerRatioInner = 12.7
       ret.steerActuatorDelay = 0.2  # in seconds
 
     ret.centerToFront = ret.wheelbase * 0.44

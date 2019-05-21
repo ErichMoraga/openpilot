@@ -74,7 +74,7 @@ class CarInterface(object):
       ret.mass = 1607. + std_cargo
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.69
-      ret.steerRatio = 15.7
+      ret.steerRatioInner = 15.7
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4 # wild guess
 
@@ -84,7 +84,7 @@ class CarInterface(object):
       ret.mass = 1496. + std_cargo
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.83
-      ret.steerRatio = 15.8
+      ret.steerRatioInner = 15.8
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4 # wild guess
 
@@ -96,7 +96,7 @@ class CarInterface(object):
       ret.centerToFront = ret.wheelbase * 0.4
       ret.minEnableSpeed = 18 * CV.MPH_TO_MS
       ret.safetyModel = car.CarParams.SafetyModels.gm
-      ret.steerRatio = 15.7
+      ret.steerRatioInner = 15.7
       ret.steerRatioRear = 0.
 
     elif candidate == CAR.ACADIA:
@@ -104,7 +104,7 @@ class CarInterface(object):
       ret.mass = 4353. * CV.LB_TO_KG + std_cargo
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.86
-      ret.steerRatio = 14.4  #end to end is 13.46
+      ret.steerRatioInner = 14.4  #end to end is 13.46
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4
 
@@ -113,7 +113,7 @@ class CarInterface(object):
       ret.mass = 3779. * CV.LB_TO_KG + std_cargo # (3849+3708)/2
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.83 #111.4 inches in meters
-      ret.steerRatio = 14.4 # guess for tourx
+      ret.steerRatioInner = 14.4 # guess for tourx
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4 # guess for tourx
 
@@ -122,7 +122,7 @@ class CarInterface(object):
       ret.mass = 1601. + std_cargo
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.78
-      ret.steerRatio = 15.3
+      ret.steerRatioInner = 15.3
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.49
 
@@ -133,7 +133,7 @@ class CarInterface(object):
       ret.mass = 4016. * CV.LB_TO_KG + std_cargo
       ret.safetyModel = car.CarParams.SafetyModels.cadillac
       ret.wheelbase = 3.11
-      ret.steerRatio = 14.6   # it's 16.3 without rear active steering
+      ret.steerRatioInner = 14.6   # it's 16.3 without rear active steering
       ret.steerRatioRear = 0. # TODO: there is RAS on this car!
       ret.centerToFront = ret.wheelbase * 0.465
 

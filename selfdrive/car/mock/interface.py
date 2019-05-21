@@ -55,7 +55,7 @@ class CarInterface(object):
     ret.rotationalInertia = 2500.
     ret.wheelbase = 2.70
     ret.centerToFront = ret.wheelbase * 0.5
-    ret.steerRatio = 13. # reasonable
+    ret.steerRatioInner = 13. # reasonable
     ret.tireStiffnessFront = 1e6    # very stiff to neglect slip
     ret.tireStiffnessRear = 1e6     # very stiff to neglect slip
     ret.steerRatioRear = 0.
@@ -111,7 +111,7 @@ class CarInterface(object):
     ret.wheelSpeeds.rl = self.speed
     ret.wheelSpeeds.rr = self.speed
     curvature = self.yaw_rate / max(self.speed, 1.)
-    ret.steeringAngle = curvature * self.CP.steerRatio * self.CP.wheelbase * CV.RAD_TO_DEG
+    ret.steeringAngle = curvature * self.CP.steerRatioInner * self.CP.wheelbase * CV.RAD_TO_DEG
 
     events = []
     ret.events = events

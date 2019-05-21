@@ -34,7 +34,8 @@ def create_dyn_state_matrices(u, VM):
     aR: Distance from CG to rear wheels [m]
     m: Mass [kg]
     j: Rotational inertia [kg m^2]
-    sR: Steering ratio [-]
+    sRi: Steering ratio inner [-]
+    sRo: Steering ratio outer [-]
     chi: Steer ratio rear [-]
   """
   A = np.zeros((2, 2))
@@ -43,8 +44,8 @@ def create_dyn_state_matrices(u, VM):
   A[0, 1] = - (VM.cF * VM.aF - VM.cR * VM.aR) / (VM.m * u) - u
   A[1, 0] = - (VM.cF * VM.aF - VM.cR * VM.aR) / (VM.j * u)
   A[1, 1] = - (VM.cF * VM.aF**2 + VM.cR * VM.aR**2) / (VM.j * u)
-  B[0, 0] = (VM.cF + VM.chi * VM.cR) / VM.m / VM.sR
-  B[1, 0] = (VM.cF * VM.aF - VM.chi * VM.cR * VM.aR) / VM.j / VM.sR
+  B[0, 0] = (VM.cF + VM.chi * VM.cR) / VM.m / VM.sRi
+  B[1, 0] = (VM.cF * VM.aF - VM.chi * VM.cR * VM.aR) / VM.j / VM.sRi
   return A, B
 
 
@@ -62,8 +63,8 @@ def kin_ss_sol(sa, u, VM):
     2x1 matrix with steady state solution
   """
   K = np.zeros((2, 1))
-  K[0, 0] = VM.aR / VM.sR / VM.l * u
-  K[1, 0] = 1. / VM.sR / VM.l * u
+  K[0, 0] = VM.aR / VM.sRi / VM.l * u
+  K[1, 0] = 1. / VM.sRi / VM.l * u
   return K * sa
 
 
@@ -106,13 +107,13 @@ class VehicleModel(object):
 
     self.cF_orig = CP.tireStiffnessFront
     self.cR_orig = CP.tireStiffnessRear
-    self.update_params(1.0, CP.steerRatio)
+    self.update_params(1.0, CP.steerRatioInner)
 
   def update_params(self, stiffness_factor, steer_ratio):
     """Update the vehicle model with a new stiffness factor and steer ratio"""
     self.cF = stiffness_factor * self.cF_orig
     self.cR = stiffness_factor * self.cR_orig
-    self.sR = steer_ratio
+    self.sRi = steer_ratio
 
   def steady_state_sol(self, sa, u):
     """Returns the steady state solution.
@@ -142,7 +143,7 @@ class VehicleModel(object):
     Returns:
       Curvature factor [rad/m]
     """
-    return self.curvature_factor(u) * sa / self.sR
+    return self.curvature_factor(u) * sa / self.sRi
 
   def curvature_factor(self, u):
     """Returns the curvature factor.
@@ -168,7 +169,7 @@ class VehicleModel(object):
       Steering wheel angle [rad]
     """
 
-    return curv * self.sR * 1.0 / self.curvature_factor(u)
+    return curv * self.sRi * 1.0 / self.curvature_factor(u)
 
   def yaw_rate(self, sa, u):
     """Calculate yaw rate

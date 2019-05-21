@@ -307,7 +307,8 @@ struct CarParams {
   mass @17 :Float32;             # [kg] running weight
   wheelbase @18 :Float32;        # [m] distance from rear to front axle
   centerToFront @19 :Float32;   # [m] GC distance to front axle
-  steerRatio @20 :Float32;       # [] ratio between front wheels and steering wheel angles
+  steerRatioInner @20 :Float32;       # [] ratio between front wheels and steering wheel angles
+  steerRatioOuter @38 :Float32;
   steerRatioRear @21 :Float32;  # [] rear steering ratio wrt front steering (usually 0)
 
   # things we can derive

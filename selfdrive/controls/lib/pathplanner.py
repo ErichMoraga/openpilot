@@ -20,10 +20,10 @@ def calc_states_after_delay(states, v_ego, steer_angle, curvature_factor, steer_
 class PathPlanner(object):
   def __init__(self, CP):
     self.MP = ModelParser()
-    
+
     self.l_poly = [0., 0., 0., 0.]
     self.r_poly = [0., 0., 0., 0.]
-    
+
     self.last_cloudlog_t = 0
 
     context = zmq.Context()
@@ -61,7 +61,7 @@ class PathPlanner(object):
 
     # Run MPC
     self.angle_steers_des_prev = self.angle_steers_des_mpc
-    VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatio)
+    VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner)
     curvature_factor = VM.curvature_factor(v_ego)
 
     l_poly = libmpc_py.ffi.new("double[4]", list(self.MP.l_poly))
@@ -69,7 +69,7 @@ class PathPlanner(object):
     p_poly = libmpc_py.ffi.new("double[4]", list(self.MP.p_poly))
 
     # account for actuation delay
-    self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset_average, curvature_factor, VM.sR, CP.steerActuatorDelay)
+    self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset_average, curvature_factor, VM.sRi, CP.steerActuatorDelay)
 
     v_ego_mpc = max(v_ego, 5.0)  # avoid mpc roughness due to low speed
     self.libmpc.run_mpc(self.cur_state, self.mpc_solution,
@@ -79,21 +79,21 @@ class PathPlanner(object):
     # reset to current steer angle if not active or overriding
     if active:
       delta_desired = self.mpc_solution[0].delta[1]
-      rate_desired = math.degrees(self.mpc_solution[0].rate[0] * VM.sR)
+      rate_desired = math.degrees(self.mpc_solution[0].rate[0] * VM.sRi)
     else:
-      delta_desired = math.radians(angle_steers - angle_offset_bias) / VM.sR
+      delta_desired = math.radians(angle_steers - angle_offset_bias) / VM.sRi
       rate_desired = 0.0
 
     self.cur_state[0].delta = delta_desired
 
-    self.angle_steers_des_mpc = float(math.degrees(delta_desired * VM.sR) + angle_offset_bias)
+    self.angle_steers_des_mpc = float(math.degrees(delta_desired * VM.sRi) + angle_offset_bias)
 
     #  Check for infeasable MPC solution
     mpc_nans = np.any(np.isnan(list(self.mpc_solution[0].delta)))
     t = sec_since_boot()
     if mpc_nans:
       self.libmpc.init(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, CP.steerRateCost)
-      self.cur_state[0].delta = math.radians(angle_steers) / VM.sR
+      self.cur_state[0].delta = math.radians(angle_steers) / VM.sRi
 
       if t > self.last_cloudlog_t + 5.0:
         self.last_cloudlog_t = t
