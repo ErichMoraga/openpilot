@@ -75,6 +75,7 @@ class CarInterface(object):
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.69
       ret.steerRatioInner = 15.7
+      ret.steerRatioOuter = 15.7
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4 # wild guess
 
@@ -85,6 +86,7 @@ class CarInterface(object):
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.83
       ret.steerRatioInner = 15.8
+      ret.steerRatioOuter = 15.8
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4 # wild guess
 
@@ -97,6 +99,7 @@ class CarInterface(object):
       ret.minEnableSpeed = 18 * CV.MPH_TO_MS
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.steerRatioInner = 15.7
+      ret.steerRatioOuter = 15.7
       ret.steerRatioRear = 0.
 
     elif candidate == CAR.ACADIA:
@@ -105,6 +108,7 @@ class CarInterface(object):
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.86
       ret.steerRatioInner = 14.4  #end to end is 13.46
+      ret.steerRatioOuter = 14.4
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4
 
@@ -114,6 +118,7 @@ class CarInterface(object):
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.83 #111.4 inches in meters
       ret.steerRatioInner = 14.4 # guess for tourx
+      ret.steerRatioOuter = 14.4
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.4 # guess for tourx
 
@@ -123,6 +128,7 @@ class CarInterface(object):
       ret.safetyModel = car.CarParams.SafetyModels.gm
       ret.wheelbase = 2.78
       ret.steerRatioInner = 15.3
+      ret.steerRatioOuter = 15.3
       ret.steerRatioRear = 0.
       ret.centerToFront = ret.wheelbase * 0.49
 
@@ -134,6 +140,7 @@ class CarInterface(object):
       ret.safetyModel = car.CarParams.SafetyModels.cadillac
       ret.wheelbase = 3.11
       ret.steerRatioInner = 14.6   # it's 16.3 without rear active steering
+      ret.steerRatioOuter = 14.6
       ret.steerRatioRear = 0. # TODO: there is RAS on this car!
       ret.centerToFront = ret.wheelbase * 0.465
 

@@ -56,6 +56,7 @@ class CarInterface(object):
     ret.wheelbase = 2.70
     ret.centerToFront = ret.wheelbase * 0.5
     ret.steerRatioInner = 13. # reasonable
+    ret.steerRatioOuter = 13.
     ret.tireStiffnessFront = 1e6    # very stiff to neglect slip
     ret.tireStiffnessRear = 1e6     # very stiff to neglect slip
     ret.steerRatioRear = 0.

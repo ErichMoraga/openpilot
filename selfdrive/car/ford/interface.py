@@ -71,6 +71,7 @@ class CarInterface(object):
 
     ret.wheelbase = 2.85
     ret.steerRatioInner = 14.8
+    ret.steerRatioOuter = 14.8
     ret.mass = 3045. * CV.LB_TO_KG + std_cargo
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.01], [0.005]]     # TODO: tune this
