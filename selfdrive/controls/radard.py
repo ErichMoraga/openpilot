@@ -131,7 +131,7 @@ def radard_thread(gctx=None):
       v_ego_hist_t.append(float(rk.frame)/rate)
 
       last_l100_ts = l100.logMonoTime
-      
+
     for socket, event in poller.poll(0):
       if socket is live100:
         l100 = messaging.recv_one(socket)
@@ -139,7 +139,7 @@ def radard_thread(gctx=None):
         md = messaging.recv_one(socket)
       elif socket is live_parameters_sock:
         live_parameters = messaging.recv_one(socket)
-        if abs(math.degrees(steer_angle)) < 1.2:
+        if abs(steer_angle) < 1.2:
             VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner)
         else:
             VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioOuter)
