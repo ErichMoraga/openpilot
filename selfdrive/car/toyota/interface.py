@@ -82,7 +82,8 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 66  # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.70
-      ret.steerRatio = 15.00   # unknown end-to-end spec
+      ret.steerRatioInner = 16.00   # unknown end-to-end spec
+      ret.steerRatioOuter = 14.00
       tire_stiffness_factor = 0.6371   # hand-tune
       ret.mass = 3045 * CV.LB_TO_KG + std_cargo
 
@@ -99,7 +100,8 @@ class CarInterface(object):
       stop_and_go = True if (candidate in CAR.RAV4H) else False
       ret.safetyParam = 73  # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.65
-      ret.steerRatio = 16.30   # 14.5 is spec end-to-end
+      ret.steerRatioInner = 16.30   # 14.5 is spec end-to-end
+      ret.steerRatioOuter = 16.30
       tire_stiffness_factor = 0.5533
       ret.mass = 3650 * CV.LB_TO_KG + std_cargo  # mean between normal and hybrid
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.05]]
@@ -109,7 +111,8 @@ class CarInterface(object):
       stop_and_go = False
       ret.safetyParam = 100 # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.70
-      ret.steerRatio = 17.8
+      ret.steerRatioInner = 17.8
+      ret.steerRatioOuter = 17.8
       tire_stiffness_factor = 0.444
       ret.mass = 2860 * CV.LB_TO_KG + std_cargo  # mean between normal and hybrid
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.05]]
@@ -119,7 +122,8 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 100 # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.79
-      ret.steerRatio = 16.  # 14.8 is spec end-to-end
+      ret.steerRatioInner = 16.0  # 14.8 is spec end-to-end
+      ret.steerRatioOuter = 16.0
       tire_stiffness_factor = 0.444  # not optimized yet
       ret.mass = 4481 * CV.LB_TO_KG + std_cargo  # mean between min and max
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
@@ -129,7 +133,8 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 100
       ret.wheelbase = 2.63906
-      ret.steerRatio = 13.6
+      ret.steerRatioInner = 13.6
+      ret.steerRatioOuter = 13.6
       tire_stiffness_factor = 0.7933
       ret.mass = 3300. * CV.LB_TO_KG + std_cargo
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.723], [0.0428]]
@@ -139,7 +144,8 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 100
       ret.wheelbase = 2.82448
-      ret.steerRatio = 13.7
+      ret.steerRatioInner = 13.7
+      ret.steerRatioOuter = 13.7
       tire_stiffness_factor = 0.7933
       ret.mass = 3400 * CV.LB_TO_KG + std_cargo #mean between normal and hybrid
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
@@ -149,7 +155,8 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 100
       ret.wheelbase = 2.78
-      ret.steerRatio = 16.0
+      ret.steerRatioInner = 16.0
+      ret.steerRatioOuter = 16.0
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.mass = 4607 * CV.LB_TO_KG + std_cargo #mean between normal and hybrid limited
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.05]]
@@ -159,7 +166,8 @@ class CarInterface(object):
       stop_and_go = False
       ret.safetyParam = 73 # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.82
-      ret.steerRatio = 14.8 #Found at https://pressroom.toyota.com/releases/2016+avalon+product+specs.download
+      ret.steerRatioInner = 14.8 #Found at https://pressroom.toyota.com/releases/2016+avalon+product+specs.download
+      ret.steerRatioOuter = 14.8
       tire_stiffness_factor = 0.7983
       ret.mass = 3505 * CV.LB_TO_KG + std_cargo  # mean between normal and hybrid
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.17], [0.03]]
@@ -169,7 +177,8 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 100
       ret.wheelbase = 2.68986
-      ret.steerRatio = 14.3
+      ret.steerRatioInner = 14.3
+      ret.steerRatioOuter = 14.3
       tire_stiffness_factor = 0.7933
       ret.mass = 3370. * CV.LB_TO_KG + std_cargo
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]
@@ -179,7 +188,8 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 100
       ret.wheelbase = 2.63906
-      ret.steerRatio = 13.9
+      ret.steerRatioInner = 13.9
+      ret.steerRatioOuter = 13.9
       tire_stiffness_factor = 0.444
       ret.mass = 3060. * CV.LB_TO_KG + std_cargo
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]

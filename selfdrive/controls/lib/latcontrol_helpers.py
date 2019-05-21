@@ -43,10 +43,10 @@ def calc_lookahead_offset(v_ego, angle_steers, d_lookahead, VM, angle_offset):
   return y_actual, curvature
 
 
-def calc_desired_steer_angle(v_ego, y_des, d_lookahead, VM, angle_offset):
+def calc_desired_steer_angle(v_ego, y_des, d_lookahead, VM, angle_offset, steering_angle):
   # inverse of the above function
   curvature = np.sin(np.arctan(y_des / d_lookahead) * 2.) / d_lookahead
-  steer_des = math.degrees(VM.get_steer_from_curvature(curvature, v_ego)) + angle_offset
+  steer_des = math.degrees(VM.get_steer_from_curvature(curvature, v_ego, steering_angle)) + angle_offset
   return steer_des, curvature
 
 

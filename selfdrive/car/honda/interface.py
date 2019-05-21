@@ -176,7 +176,7 @@ class CarInterface(object):
     tireStiffnessFront_civic = 192150
     tireStiffnessRear_civic = 202500
 
-    # Optimized car params: tire_stiffness_factor and steerRatio are a result of a vehicle
+    # Optimized car params: tire_stiffness_factor and steerRatioInner are a result of a vehicle
     # model optimization process. Certain Hondas have an extra steering sensor at the bottom
     # of the steering rack, which improves controls quality as it removes the steering column
     # torsion from feedback.
@@ -191,7 +191,8 @@ class CarInterface(object):
       ret.mass = mass_civic
       ret.wheelbase = wheelbase_civic
       ret.centerToFront = centerToFront_civic
-      ret.steerRatio = 14.63  # 10.93 is end-to-end spec
+      ret.steerRatioInner = 14.63  # 10.93 is end-to-end spec
+      ret.steerRatioOuter = 14.63
       tire_stiffness_factor = 1.
       # Civic at comma has modified steering FW, so different tuning for the Neo in that car
       is_fw_modified = os.getenv("DONGLE_ID") in ['99c94dc769b5d96e']
@@ -211,7 +212,8 @@ class CarInterface(object):
       ret.mass = 3279. * CV.LB_TO_KG + std_cargo
       ret.wheelbase = 2.83
       ret.centerToFront = ret.wheelbase * 0.39
-      ret.steerRatio = 15.96  # 11.82 is spec end-to-end
+      ret.steerRatioInner = 15.96  # 11.82 is spec end-to-end
+      ret.steerRatioOuter = 15.96
       tire_stiffness_factor = 0.8467
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.18]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -224,7 +226,8 @@ class CarInterface(object):
       ret.mass = 3095 * CV.LB_TO_KG + std_cargo
       ret.wheelbase = 2.67
       ret.centerToFront = ret.wheelbase * 0.37
-      ret.steerRatio = 18.61  # 15.3 is spec end-to-end
+      ret.steerRatioInner = 18.61  # 15.3 is spec end-to-end
+      ret.steerRatioOuter = 18.61
       tire_stiffness_factor = 0.72
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -237,7 +240,8 @@ class CarInterface(object):
       ret.mass = 3572 * CV.LB_TO_KG + std_cargo
       ret.wheelbase = 2.62
       ret.centerToFront = ret.wheelbase * 0.41
-      ret.steerRatio = 15.3         # as spec
+      ret.steerRatioInner = 15.3         # as spec
+      ret.steerRatioOuter = 15.3
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -251,7 +255,8 @@ class CarInterface(object):
       ret.mass = 3410. * CV.LB_TO_KG + std_cargo
       ret.wheelbase = 2.66
       ret.centerToFront = ret.wheelbase * 0.41
-      ret.steerRatio = 16.0   # 12.3 is spec end-to-end
+      ret.steerRatioInner = 16.0   # 12.3 is spec end-to-end
+      ret.steerRatioOuter = 16.0
       tire_stiffness_factor = 0.677
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.18]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -265,7 +270,8 @@ class CarInterface(object):
       ret.mass = 1667. + std_cargo # mean of 4 models in kg
       ret.wheelbase = 2.66
       ret.centerToFront = ret.wheelbase * 0.41
-      ret.steerRatio = 16.0   # 12.3 is spec end-to-end
+      ret.steerRatioInner = 16.0   # 12.3 is spec end-to-end
+      ret.steerRatioOuter = 16.0
       tire_stiffness_factor = 0.677
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.18]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -278,7 +284,8 @@ class CarInterface(object):
       ret.mass = 3935 * CV.LB_TO_KG + std_cargo
       ret.wheelbase = 2.68
       ret.centerToFront = ret.wheelbase * 0.38
-      ret.steerRatio = 15.0         # as spec
+      ret.steerRatioInner = 15.0         # as spec
+      ret.steerRatioOuter = 15.0
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -291,7 +298,8 @@ class CarInterface(object):
       ret.mass = 4471 * CV.LB_TO_KG + std_cargo
       ret.wheelbase = 3.00
       ret.centerToFront = ret.wheelbase * 0.41
-      ret.steerRatio = 14.35        # as spec
+      ret.steerRatioInner = 14.35        # as spec
+      ret.steerRatioOuter = 14.35
       tire_stiffness_factor = 0.82
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.45], [0.135]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -304,7 +312,8 @@ class CarInterface(object):
       ret.mass = 1849.2 + std_cargo # mean of 4 models in kg
       ret.wheelbase = 2.90 # spec
       ret.centerToFront = ret.wheelbase * 0.41 # from CAR.ODYSSEY
-      ret.steerRatio = 14.35 # from CAR.ODYSSEY
+      ret.steerRatioInner = 14.35 # from CAR.ODYSSEY
+      ret.steerRatioOuter = 14.35
       tire_stiffness_factor = 0.82 # from CAR.ODYSSEY
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.45], [0.135]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -317,7 +326,8 @@ class CarInterface(object):
       ret.mass = 4303 * CV.LB_TO_KG + std_cargo
       ret.wheelbase = 2.81
       ret.centerToFront = ret.wheelbase * 0.41
-      ret.steerRatio = 16.0         # as spec
+      ret.steerRatioInner = 16.0         # as spec
+      ret.steerRatioOuter = 16.0
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.38], [0.11]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -330,7 +340,8 @@ class CarInterface(object):
       ret.mass = 4515 * CV.LB_TO_KG + std_cargo
       ret.wheelbase = 3.18
       ret.centerToFront = ret.wheelbase * 0.41
-      ret.steerRatio = 15.59        # as spec
+      ret.steerRatioInner = 15.59        # as spec
+      ret.steerRatioOuter = 15.59
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.38], [0.11]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]

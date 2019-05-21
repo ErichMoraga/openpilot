@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 from numpy.linalg import solve
+import math
 
 """
 Dynamic bycicle model from "The Science of Vehicle Dynamics (2014), M. Guiggiani"
@@ -17,12 +18,13 @@ A depends on longitudinal speed, u [m/s], and vehicle parameters CP
 """
 
 
-def create_dyn_state_matrices(u, VM):
+def create_dyn_state_matrices(u, VM, sa):
   """Returns the A and B matrix for the dynamics system
 
   Args:
     u: Vehicle speed [m/s]
     VM: Vehicle model
+    sa : Steering angle [rad]
 
   Returns:
     A tuple with the 2x2 A matrix, and 2x1 B matrix
@@ -34,7 +36,8 @@ def create_dyn_state_matrices(u, VM):
     aR: Distance from CG to rear wheels [m]
     m: Mass [kg]
     j: Rotational inertia [kg m^2]
-    sR: Steering ratio [-]
+    sRi: Steering ratio inner [-]
+    sRo: Steering ratio outer [-]
     chi: Steer ratio rear [-]
   """
   A = np.zeros((2, 2))
@@ -43,8 +46,12 @@ def create_dyn_state_matrices(u, VM):
   A[0, 1] = - (VM.cF * VM.aF - VM.cR * VM.aR) / (VM.m * u) - u
   A[1, 0] = - (VM.cF * VM.aF - VM.cR * VM.aR) / (VM.j * u)
   A[1, 1] = - (VM.cF * VM.aF**2 + VM.cR * VM.aR**2) / (VM.j * u)
-  B[0, 0] = (VM.cF + VM.chi * VM.cR) / VM.m / VM.sR
-  B[1, 0] = (VM.cF * VM.aF - VM.chi * VM.cR * VM.aR) / VM.j / VM.sR
+  if abs(math.degrees(sa)) < 1.2:
+      B[0, 0] = (VM.cF + VM.chi * VM.cR) / VM.m / VM.sRi
+      B[1, 0] = (VM.cF * VM.aF - VM.chi * VM.cR * VM.aR) / VM.j / VM.sRi
+  else:
+      B[0, 0] = (VM.cF + VM.chi * VM.cR) / VM.m / VM.sRo
+      B[1, 0] = (VM.cF * VM.aF - VM.chi * VM.cR * VM.aR) / VM.j / VM.sRo
   return A, B
 
 
@@ -62,8 +69,12 @@ def kin_ss_sol(sa, u, VM):
     2x1 matrix with steady state solution
   """
   K = np.zeros((2, 1))
-  K[0, 0] = VM.aR / VM.sR / VM.l * u
-  K[1, 0] = 1. / VM.sR / VM.l * u
+  if abs(math.degrees(sa)) < 1.2:
+      K[0, 0] = VM.aR / VM.sRi / VM.l * u
+      K[1, 0] = 1. / VM.sRi / VM.l * u
+  else:
+      K[0, 0] = VM.aR / VM.sRo / VM.l * u
+      K[1, 0] = 1. / VM.sRo / VM.l * u
   return K * sa
 
 
@@ -79,7 +90,7 @@ def dyn_ss_sol(sa, u, VM):
   Returns:
     2x1 matrix with steady state solution
   """
-  A, B = create_dyn_state_matrices(u, VM)
+  A, B = create_dyn_state_matrices(u, VM, sa)
   return -solve(A, B) * sa
 
 
@@ -106,13 +117,14 @@ class VehicleModel(object):
 
     self.cF_orig = CP.tireStiffnessFront
     self.cR_orig = CP.tireStiffnessRear
-    self.update_params(1.0, CP.steerRatio)
+    self.update_params(1.0, CP.steerRatioInner, CP.steerRatioOuter)
 
-  def update_params(self, stiffness_factor, steer_ratio):
+  def update_params(self, stiffness_factor, steer_ratio_inner, steer_ratio_outer):
     """Update the vehicle model with a new stiffness factor and steer ratio"""
     self.cF = stiffness_factor * self.cF_orig
     self.cR = stiffness_factor * self.cR_orig
-    self.sR = steer_ratio
+    self.sRi = steer_ratio_inner
+    self.sRo = steer_ratio_outer
 
   def steady_state_sol(self, sa, u):
     """Returns the steady state solution.
@@ -142,7 +154,10 @@ class VehicleModel(object):
     Returns:
       Curvature factor [rad/m]
     """
-    return self.curvature_factor(u) * sa / self.sR
+    if abs(math.degrees(sa)) < 1.2:
+        return self.curvature_factor(u) * sa / self.sRi
+    else:
+        return self.curvature_factor(u) * sa / self.sRo
 
   def curvature_factor(self, u):
     """Returns the curvature factor.
@@ -157,7 +172,7 @@ class VehicleModel(object):
     sf = calc_slip_factor(self)
     return (1. - self.chi) / (1. - sf * u**2) / self.l
 
-  def get_steer_from_curvature(self, curv, u):
+  def get_steer_from_curvature(self, curv, u, sa):
     """Calculates the required steering wheel angle for a given curvature
 
     Args:
@@ -167,8 +182,10 @@ class VehicleModel(object):
     Returns:
       Steering wheel angle [rad]
     """
-
-    return curv * self.sR * 1.0 / self.curvature_factor(u)
+    if abs(math.degrees(sa)) < 1.2:
+        return curv * self.sRi * 1.0 / self.curvature_factor(u)
+    else:
+        return curv * self.sRo * 1.0 / self.curvature_factor(u)
 
   def yaw_rate(self, sa, u):
     """Calculate yaw rate

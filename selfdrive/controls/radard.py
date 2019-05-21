@@ -72,7 +72,8 @@ def radard_thread(gctx=None):
   live_parameters = messaging.new_message()
   live_parameters.init('liveParameters')
   live_parameters.liveParameters.valid = True
-  live_parameters.liveParameters.steerRatio = CP.steerRatio
+  live_parameters.liveParameters.steerRatioInner = CP.steerRatioInner
+  live_parameters.liveParameters.steerRatioOuter = CP.steerRatioOuter
   live_parameters.liveParameters.stiffnessFactor = 1.0
 
   MP = ModelParser()
@@ -127,7 +128,7 @@ def radard_thread(gctx=None):
         md = messaging.recv_one(socket)
       elif socket is live_parameters_sock:
         live_parameters = messaging.recv_one(socket)
-        VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatio)
+        VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner, live_parameters.liveParameters.steerRatioOuter)
 
     if l100 is not None:
       active = l100.live100.active
