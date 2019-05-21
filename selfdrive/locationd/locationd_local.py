@@ -100,13 +100,13 @@ class Localizer(object):
 
 
 class ParamsLearner(object):
-  def __init__(self, VM, angle_offset=0., stiffness_factor=1.0, steer_ratio=None, learning_rate=1.0):
+  def __init__(self, VM, angle_offset=0., stiffness_factor=1.0, steer_ratio_inner=None, learning_rate=1.0):
     self.VM = VM
 
     self.ao = math.radians(angle_offset)
     self.slow_ao = math.radians(angle_offset)
     self.x = stiffness_factor
-    self.sRi = VM.sRi if steer_ratio is None else steer_ratio
+    self.sRi = VM.sRi if steer_ratio_inner is None else steer_ratio_inner
     self.MIN_SR = MIN_SR * self.VM.sRi
     self.MAX_SR = MAX_SR * self.VM.sRi
     self.MIN_SR_TH = MIN_SR_TH * self.VM.sRi
@@ -210,7 +210,7 @@ def locationd_thread(gctx, addr, disabled_logs):
   learner = ParamsLearner(VM,
                           angle_offset=params['angleOffsetAverage'],
                           stiffness_factor=params['stiffnessFactor'],
-                          steer_ratio=params['steerRatioInner'],
+                          steer_ratio_inner=params['steerRatioInner'],
                           learning_rate=LEARNING_RATE)
 
   i = 0

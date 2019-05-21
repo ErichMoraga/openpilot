@@ -109,11 +109,11 @@ class VehicleModel(object):
     self.cR_orig = CP.tireStiffnessRear
     self.update_params(1.0, CP.steerRatioInner)
 
-  def update_params(self, stiffness_factor, steer_ratio):
+  def update_params(self, stiffness_factor, steer_ratio_inner):
     """Update the vehicle model with a new stiffness factor and steer ratio"""
     self.cF = stiffness_factor * self.cF_orig
     self.cR = stiffness_factor * self.cR_orig
-    self.sRi = steer_ratio
+    self.sRi = steer_ratio_inner
 
   def steady_state_sol(self, sa, u):
     """Returns the steady state solution.
