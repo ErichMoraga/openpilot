@@ -13,3 +13,5 @@ This means that you end up with a steer ratio that works well in straights, or i
 I try to enhance this in OP by splitting out the center and off-center steer ratios into discrete values everywhere they appear in OP. This includes vehicle params, MPC model, ParamsLearner, etc. Hopefully with these changes, the best steer ratios can be found across the steering rack.
 
 It would be very helpful if I, or someone could up with an easy way to measure the steer ratios around the rack at specified angles, it'd be super handy to know of those breakpoints, and the specific ratios involved without having to take apart a steering rack.
+
+It'd also be great if I didn't hardcode the angles for the breakpoint as different models need different configs, but I'll chaulk it up to an enhancement request later and it'd involve changing yet another struct.
