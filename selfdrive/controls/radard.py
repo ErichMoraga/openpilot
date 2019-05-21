@@ -73,6 +73,7 @@ def radard_thread(gctx=None):
   live_parameters.init('liveParameters')
   live_parameters.liveParameters.valid = True
   live_parameters.liveParameters.steerRatioInner = CP.steerRatioInner
+  live_parameters.liveParameters.steerRatioOuter = CP.steerRatioOuter
   live_parameters.liveParameters.stiffnessFactor = 1.0
 
   MP = ModelParser()
@@ -120,15 +121,6 @@ def radard_thread(gctx=None):
     l100 = None
     md = None
 
-    for socket, event in poller.poll(0):
-      if socket is live100:
-        l100 = messaging.recv_one(socket)
-      elif socket is model:
-        md = messaging.recv_one(socket)
-      elif socket is live_parameters_sock:
-        live_parameters = messaging.recv_one(socket)
-        VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner)
-
     if l100 is not None:
       active = l100.live100.active
       v_ego = l100.live100.vEgo
@@ -139,6 +131,18 @@ def radard_thread(gctx=None):
       v_ego_hist_t.append(float(rk.frame)/rate)
 
       last_l100_ts = l100.logMonoTime
+      
+    for socket, event in poller.poll(0):
+      if socket is live100:
+        l100 = messaging.recv_one(socket)
+      elif socket is model:
+        md = messaging.recv_one(socket)
+      elif socket is live_parameters_sock:
+        live_parameters = messaging.recv_one(socket)
+        if abs(math.degrees(steer_angle)) < 1.2:
+            VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioInner)
+        else:
+            VM.update_params(live_parameters.liveParameters.stiffnessFactor, live_parameters.liveParameters.steerRatioOuter)
 
     if v_ego is None:
       continue

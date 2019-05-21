@@ -52,6 +52,7 @@ def plannerd_thread():
   live_parameters.init('liveParameters')
   live_parameters.liveParameters.valid = True
   live_parameters.liveParameters.steerRatioInner = CP.steerRatioInner
+  live_parameters.liveParameters.steerRatioOuter = CP.steerRatioOuter
   live_parameters.liveParameters.stiffnessFactor = 1.0
 
   rcv_times = defaultdict(int)
