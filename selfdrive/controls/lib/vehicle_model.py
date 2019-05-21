@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 from numpy.linalg import solve
+import math
 
 """
 Dynamic bycicle model from "The Science of Vehicle Dynamics (2014), M. Guiggiani"
