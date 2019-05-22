@@ -32,274 +32,303 @@ MAX_SR_TH = 1.9
 
 LEARNING_RATE = 3
 
+
 class Localizer(object):
-  def __init__(self, disabled_logs=None, dog=None):
-    self.kf = LocLocalKalman()
-    self.reset_kalman()
+    def __init__(self, disabled_logs=None, dog=None):
+        self.kf = LocLocalKalman()
+        self.reset_kalman()
 
-    self.max_age = .2  # seconds
-    self.calibration_valid = False
+        self.max_age = .2  # seconds
+        self.calibration_valid = False
 
-    if disabled_logs is None:
-      self.disabled_logs = list()
-    else:
-      self.disabled_logs = disabled_logs
+        if disabled_logs is None:
+            self.disabled_logs = list()
+        else:
+            self.disabled_logs = disabled_logs
 
-  def reset_kalman(self):
-    self.filter_time = None
-    self.observation_buffer = []
-    self.converter = None
-    self.speed_counter = 0
-    self.sensor_counter = 0
+    def reset_kalman(self):
+        self.filter_time = None
+        self.observation_buffer = []
+        self.converter = None
+        self.speed_counter = 0
+        self.sensor_counter = 0
 
-  def liveLocationMsg(self, time):
-    fix = messaging.log.KalmanOdometry.new_message()
+    def liveLocationMsg(self, time):
+        fix = messaging.log.KalmanOdometry.new_message()
 
-    predicted_state = self.kf.x
-    fix.trans = [float(predicted_state[0]), float(predicted_state[1]), float(predicted_state[2])]
-    fix.rot = [float(predicted_state[3]), float(predicted_state[4]), float(predicted_state[5])]
+        predicted_state = self.kf.x
+        fix.trans = [float(predicted_state[0]), float(predicted_state[1]), float(predicted_state[2])]
+        fix.rot = [float(predicted_state[3]), float(predicted_state[4]), float(predicted_state[5])]
 
-    return fix
+        return fix
 
-  def update_kalman(self, time, kind, meas):
-    idx = bisect_right([x[0] for x in self.observation_buffer], time)
-    self.observation_buffer.insert(idx, (time, kind, meas))
-    while self.observation_buffer[-1][0] - self.observation_buffer[0][0] > self.max_age:
-      self.kf.predict_and_observe(*self.observation_buffer.pop(0))
+    def update_kalman(self, time, kind, meas):
+        idx = bisect_right([x[0] for x in self.observation_buffer], time)
+        self.observation_buffer.insert(idx, (time, kind, meas))
+        while self.observation_buffer[-1][0] - self.observation_buffer[0][0] > self.max_age:
+            self.kf.predict_and_observe(*self.observation_buffer.pop(0))
 
-  def handle_cam_odo(self, log, current_time):
-    self.update_kalman(current_time, ObservationKind.CAMERA_ODO_ROTATION, np.concatenate([log.cameraOdometry.rot,
-                                                                                          log.cameraOdometry.rotStd]))
-    self.update_kalman(current_time, ObservationKind.CAMERA_ODO_TRANSLATION, np.concatenate([log.cameraOdometry.trans,
-                                                                                             log.cameraOdometry.transStd]))
+    def handle_cam_odo(self, log, current_time):
+        self.update_kalman(current_time, ObservationKind.CAMERA_ODO_ROTATION, np.concatenate([log.cameraOdometry.rot,
+                                                                                              log.cameraOdometry.rotStd]))
+        self.update_kalman(current_time, ObservationKind.CAMERA_ODO_TRANSLATION,
+                           np.concatenate([log.cameraOdometry.trans,
+                                           log.cameraOdometry.transStd]))
 
-  def handle_live100(self, log, current_time):
-    self.speed_counter += 1
-    if self.speed_counter % 5 == 0:
-      self.update_kalman(current_time, ObservationKind.ODOMETRIC_SPEED, np.array([log.live100.vEgo]))
+    def handle_live100(self, log, current_time):
+        self.speed_counter += 1
+        if self.speed_counter % 5 == 0:
+            self.update_kalman(current_time, ObservationKind.ODOMETRIC_SPEED, np.array([log.live100.vEgo]))
 
-  def handle_sensors(self, log, current_time):
-    for sensor_reading in log.sensorEvents:
-      # TODO does not yet account for double sensor readings in the log
-      if sensor_reading.type == 4:
-        self.sensor_counter += 1
-        if self.sensor_counter % LEARNING_RATE == 0:
-          self.update_kalman(current_time, ObservationKind.PHONE_GYRO, [-sensor_reading.gyro.v[2], -sensor_reading.gyro.v[1], -sensor_reading.gyro.v[0]])
+    def handle_sensors(self, log, current_time):
+        for sensor_reading in log.sensorEvents:
+            # TODO does not yet account for double sensor readings in the log
+            if sensor_reading.type == 4:
+                self.sensor_counter += 1
+                if self.sensor_counter % LEARNING_RATE == 0:
+                    self.update_kalman(current_time, ObservationKind.PHONE_GYRO,
+                                       [-sensor_reading.gyro.v[2], -sensor_reading.gyro.v[1],
+                                        -sensor_reading.gyro.v[0]])
 
-  def handle_log(self, log):
-    current_time = 1e-9 * log.logMonoTime
-    typ = log.which
-    if typ in self.disabled_logs:
-      return
-    if typ == "sensorEvents":
-      self.handle_sensors(log, current_time)
-    elif typ == "live100":
-      self.handle_live100(log, current_time)
-    elif typ == "cameraOdometry":
-      self.handle_cam_odo(log, current_time)
+    def handle_log(self, log):
+        current_time = 1e-9 * log.logMonoTime
+        typ = log.which
+        if typ in self.disabled_logs:
+            return
+        if typ == "sensorEvents":
+            self.handle_sensors(log, current_time)
+        elif typ == "live100":
+            self.handle_live100(log, current_time)
+        elif typ == "cameraOdometry":
+            self.handle_cam_odo(log, current_time)
 
 
 class ParamsLearner(object):
-  def __init__(self, VM, angle_offset_inner=0., angle_offset_outer=0., stiffness_factor=1.0, steer_ratio_inner=None, steer_ratio_outer=None, learning_rate=1.0):
-    self.VM = VM
+    def __init__(self, VM, angle_offset_inner=0., angle_offset_outer=0., stiffness_factor=1.0, steer_ratio_inner=None,
+                 steer_ratio_outer=None, learning_rate=1.0):
+        self.VM = VM
 
-    self.ao_inner = math.radians(angle_offset_inner)
-    self.ao_outer = math.radians(angle_offset_outer)
-    self.slow_ao_inner = math.radians(angle_offset_inner)
-    self.slow_ao_outer = math.radians(angle_offset_outer)
-    self.x = stiffness_factor
-    self.sRi = VM.sRi if steer_ratio_inner is None else steer_ratio_inner
-    self.sRo = VM.sRo if steer_ratio_outer is None else steer_ratio_outer
-    self.MIN_SR = MIN_SR * self.VM.sRi
-    self.MAX_SR = MAX_SR * self.VM.sRi
-    self.MIN_SR_TH = MIN_SR_TH * self.VM.sRi
-    self.MAX_SR_TH = MAX_SR_TH * self.VM.sRi
+        self.ao_inner = math.radians(angle_offset_inner)
+        self.ao_outer = math.radians(angle_offset_outer)
+        self.slow_ao_inner = math.radians(angle_offset_inner)
+        self.slow_ao_outer = math.radians(angle_offset_outer)
+        self.x = stiffness_factor
+        self.sRi = VM.sRi if steer_ratio_inner is None else steer_ratio_inner
+        self.sRo = VM.sRo if steer_ratio_outer is None else steer_ratio_outer
+        self.MIN_SR = MIN_SR * self.VM.sRi
+        self.MAX_SR = MAX_SR * self.VM.sRi
+        self.MIN_SR_TH = MIN_SR_TH * self.VM.sRi
+        self.MAX_SR_TH = MAX_SR_TH * self.VM.sRi
 
-    self.alpha1 = 0.01 * learning_rate
-    self.alpha2 = 0.0005 * learning_rate
-    self.alpha3 = 0.1 * learning_rate
-    self.alpha4 = 1.0 * learning_rate
+        self.alpha1 = 0.01 * learning_rate
+        self.alpha2 = 0.0005 * learning_rate
+        self.alpha3 = 0.1 * learning_rate
+        self.alpha4 = 1.0 * learning_rate
 
-  def get_values(self):
-    return {
-      'angleOffsetAverageInner': math.degrees(self.slow_ao_inner),
-      'angleOffsetAverageOuter': math.degrees(self.slow_ao_outer),
-      'stiffnessFactor': self.x,
-      'steerRatioInner': self.sRi,
-      'steerRatioOuter': self.sRo,
-    }
+    def get_values(self):
+        return {
+            'angleOffsetAverageInner': math.degrees(self.slow_ao_inner),
+            'angleOffsetAverageOuter': math.degrees(self.slow_ao_outer),
+            'stiffnessFactor': self.x,
+            'steerRatioInner': self.sRi,
+            'steerRatioOuter': self.sRo,
+        }
 
-  def update(self, psi, u, sa, active):
-    cF0 = self.VM.cF
-    cR0 = self.VM.cR
-    aR = self.VM.aR
-    aF = self.VM.aF
-    l = self.VM.l
-    m = self.VM.m
+    def update(self, psi, u, sa, active):
+        cF0 = self.VM.cF
+        cR0 = self.VM.cR
+        aR = self.VM.aR
+        aF = self.VM.aF
+        l = self.VM.l
+        m = self.VM.m
 
-    x = self.x
-    ao_i = self.ao_i
-    ao_o = self.ao_o
-    sRi = self.sRi
-    sRo = self.sRo
+        x = self.x
+        ao_i = self.ao_i
+        ao_o = self.ao_o
+        sRi = self.sRi
+        sRo = self.sRo
 
-    # Gradient descent:  learn angle offset, tire stiffness and steer ratio.
-    if active and u > 18.0 and abs(math.degrees(sa)) < 1.2:
-      self.ao_i -= self.alpha1 * 2.0*cF0*cR0*l*u*x*(1.0*cF0*cR0*l*u*x*(ao_i - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
+        # Gradient descent:  learn angle offset, tire stiffness and steer ratio.
+        if active and u > 18.0 and abs(math.degrees(sa)) < 1.2:
+            self.ao_i -= self.alpha1 * 2.0 * cF0 * cR0 * l * u * x * (
+                        1.0 * cF0 * cR0 * l * u * x * (ao_i - sa) + psi * sRi * (
+                            cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
+                                     sRi ** 2 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
 
-      ao_i = self.slow_ao_inner
-      self.slow_ao_inner -= self.alpha2 * 2.0*cF0*cR0*l*u*x*(1.0*cF0*cR0*l*u*x*(ao_i - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
+            ao_i = self.slow_ao_inner
+            self.slow_ao_inner -= self.alpha2 * 2.0 * cF0 * cR0 * l * u * x * (
+                        1.0 * cF0 * cR0 * l * u * x * (ao_i - sa) + psi * sRi * (
+                            cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (sRi ** 2 * (
+                        cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
 
-      self.x -= self.alpha3 * -2.0*cF0*cR0*l*m*u**3*(ao_i - sa)*(aF*cF0 - aR*cR0)*(1.0*cF0*cR0*l*u*x*(ao_i - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**3)
+            self.x -= self.alpha3 * -2.0 * cF0 * cR0 * l * m * u ** 3 * (ao_i - sa) * (aF * cF0 - aR * cR0) * (
+                        1.0 * cF0 * cR0 * l * u * x * (ao_i - sa) + psi * sRi * (
+                            cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
+                                  sRi ** 2 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 3)
 
-      self.sRi -= self.alpha4 * -2.0*cF0*cR0*l*u*x*(ao_i - sa)*(1.0*cF0*cR0*l*u*x*(ao_i - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**3*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
-    elif active and u > 10.0 and abs(math.degrees(sa)) < 15. and abs(math.degrees(sa)) > 1.2:
-      self.ao_o -= self.alpha1 * 2.0*cF0*cR0*l*u*x*(1.0*cF0*cR0*l*u*x*(ao_o - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
+            self.sRi -= self.alpha4 * -2.0 * cF0 * cR0 * l * u * x * (ao_i - sa) * (
+                        1.0 * cF0 * cR0 * l * u * x * (ao_i - sa) + psi * sRi * (
+                            cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
+                                    sRi ** 3 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
+        elif active and u > 10.0 and abs(math.degrees(sa)) < 15. and abs(math.degrees(sa)) > 1.2:
+            self.ao_o -= self.alpha1 * 2.0 * cF0 * cR0 * l * u * x * (
+                        1.0 * cF0 * cR0 * l * u * x * (ao_o - sa) + psi * sRo * (
+                            cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
+                                     sRo ** 2 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
 
-      ao_o = self.slow_ao_outer
-      self.slow_ao_outer -= self.alpha2 * 2.0*cF0*cR0*l*u*x*(1.0*cF0*cR0*l*u*x*(ao_o - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
+            ao_o = self.slow_ao_outer
+            self.slow_ao_outer -= self.alpha2 * 2.0 * cF0 * cR0 * l * u * x * (
+                        1.0 * cF0 * cR0 * l * u * x * (ao_o - sa) + psi * sRo * (
+                            cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (sRo ** 2 * (
+                        cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
 
-      self.x -= self.alpha3 * -2.0*cF0*cR0*l*m*u**3*(ao_o - sa)*(aF*cF0 - aR*cR0)*(1.0*cF0*cR0*l*u*x*(ao_o - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**3)
+            self.x -= self.alpha3 * -2.0 * cF0 * cR0 * l * m * u ** 3 * (ao_o - sa) * (aF * cF0 - aR * cR0) * (
+                        1.0 * cF0 * cR0 * l * u * x * (ao_o - sa) + psi * sRo * (
+                            cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
+                                  sRo ** 2 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 3)
 
-      self.sRo -= self.alpha4 * -2.0*cF0*cR0*l*u*x*(ao_o - sa)*(1.0*cF0*cR0*l*u*x*(ao_o - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**3*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
+            self.sRo -= self.alpha4 * -2.0 * cF0 * cR0 * l * u * x * (ao_o - sa) * (
+                        1.0 * cF0 * cR0 * l * u * x * (ao_o - sa) + psi * sRo * (
+                            cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
+                                    sRo ** 3 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
 
-    #if DEBUG:
-      # s1 = "Measured yaw rate % .6f" % psi
-      # ao = 0.
-      # s2 = "Uncompensated yaw % .6f" % (1.0*u*(-ao + sa)/(l*sRi*(1 - m*u**2*(aF*cF0*x - aR*cR0*x)/(cF0*cR0*l**2*x**2))))
-      # instant_ao = aF*m*psi*sRi*u/(cR0*l*x) - aR*m*psi*sRi*u/(cF0*l*x) - l*psi*sRi/u + sa
-      #s4 = "Instant AO: % .2f Avg. AO % .2f" % (math.degrees(self.ao_i), math.degrees(self.slow_ao_inner))
-      #s5 = "Stiffnes: % .3f x" % self.x
-      #print("{0} {1}".format(s4, s5))
+        # if DEBUG:
+        # s1 = "Measured yaw rate % .6f" % psi
+        # ao = 0.
+        # s2 = "Uncompensated yaw % .6f" % (1.0*u*(-ao + sa)/(l*sRi*(1 - m*u**2*(aF*cF0*x - aR*cR0*x)/(cF0*cR0*l**2*x**2))))
+        # instant_ao = aF*m*psi*sRi*u/(cR0*l*x) - aR*m*psi*sRi*u/(cF0*l*x) - l*psi*sRi/u + sa
+        # s4 = "Instant AO: % .2f Avg. AO % .2f" % (math.degrees(self.ao_i), math.degrees(self.slow_ao_inner))
+        # s5 = "Stiffnes: % .3f x" % self.x
+        # print("{0} {1}".format(s4, s5))
 
+        self.ao_inner = clip(self.ao_i, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
+        self.ao_outer = clip(self.ao_o, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
+        self.slow_ao_inner = clip(self.slow_ao_inner, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
+        self.slow_ao_outer = clip(self.slow_ao_outer, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
+        self.x = clip(self.x, MIN_STIFFNESS, MAX_STIFFNESS)
+        self.sRi = clip(self.sRi, self.MIN_SR, self.MAX_SR)
+        self.sRo = clip(self.sRo, self.MIN_SR, self.MAX_SR)
 
-    self.ao_inner = clip(self.ao_i, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
-    self.ao_outer = clip(self.ao_o, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
-    self.slow_ao_inner = clip(self.slow_ao_inner, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
-    self.slow_ao_outer = clip(self.slow_ao_outer, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
-    self.x = clip(self.x, MIN_STIFFNESS, MAX_STIFFNESS)
-    self.sRi = clip(self.sRi, self.MIN_SR, self.MAX_SR)
-    self.sRo = clip(self.sRo, self.MIN_SR, self.MAX_SR)
+        # don't check stiffness for validity, as it can change quickly if sRi is off
+        if abs(math.degrees(sa)) < 1.2:
+            valid = abs(self.slow_ao_inner) < MAX_ANGLE_OFFSET_TH and \
+                    self.sRi > self.MIN_SR_TH and self.sRi < self.MAX_SR_TH
+        else:
+            valid = abs(self.slow_ao_outer) < MAX_ANGLE_OFFSET_TH and \
+                    self.sRo > self.MIN_SR_TH and self.sRo < self.MAX_SR_TH
 
-    # don't check stiffness for validity, as it can change quickly if sRi is off
-    if abs(math.degrees(sa)) < 1.2:
-      valid = abs(self.slow_ao_inner) < MAX_ANGLE_OFFSET_TH and \
-      self.sRi > self.MIN_SR_TH and self.sRi < self.MAX_SR_TH
-    else:
-      valid = abs(self.slow_ao_outer) < MAX_ANGLE_OFFSET_TH and \
-      self.sRo > self.MIN_SR_TH and self.sRo < self.MAX_SR_TH
-
-    return valid
+        return valid
 
 
 def locationd_thread(gctx, addr, disabled_logs):
-  ctx = zmq.Context()
-  poller = zmq.Poller()
+    ctx = zmq.Context()
+    poller = zmq.Poller()
 
-  live100_socket = messaging.sub_sock(ctx, service_list['live100'].port, poller, addr=addr, conflate=True)
-  sensor_events_socket = messaging.sub_sock(ctx, service_list['sensorEvents'].port, poller, addr=addr, conflate=True)
-  camera_odometry_socket = messaging.sub_sock(ctx, service_list['cameraOdometry'].port, poller, addr=addr, conflate=True)
+    live100_socket = messaging.sub_sock(ctx, service_list['live100'].port, poller, addr=addr, conflate=True)
+    sensor_events_socket = messaging.sub_sock(ctx, service_list['sensorEvents'].port, poller, addr=addr, conflate=True)
+    camera_odometry_socket = messaging.sub_sock(ctx, service_list['cameraOdometry'].port, poller, addr=addr,
+                                                conflate=True)
 
-  kalman_odometry_socket = messaging.pub_sock(ctx, service_list['kalmanOdometry'].port)
-  live_parameters_socket = messaging.pub_sock(ctx, service_list['liveParameters'].port)
+    kalman_odometry_socket = messaging.pub_sock(ctx, service_list['kalmanOdometry'].port)
+    live_parameters_socket = messaging.pub_sock(ctx, service_list['liveParameters'].port)
 
-  params_reader = Params()
-  cloudlog.info("Parameter learner is waiting for CarParams")
-  CP = car.CarParams.from_bytes(params_reader.get("CarParams", block=True))
-  VM = VehicleModel(CP)
-  cloudlog.info("Parameter learner got CarParams: %s" % CP.carFingerprint)
+    params_reader = Params()
+    cloudlog.info("Parameter learner is waiting for CarParams")
+    CP = car.CarParams.from_bytes(params_reader.get("CarParams", block=True))
+    VM = VehicleModel(CP)
+    cloudlog.info("Parameter learner got CarParams: %s" % CP.carFingerprint)
 
-  params = params_reader.get("liveParametersVSRv2")
+    params = params_reader.get("liveParametersVSRv2")
 
-  # Check if car model matches
-  if params is not None:
-    params = json.loads(params)
-    if params.get('carFingerprint', None) != CP.carFingerprint:
-      cloudlog.info("Parameter learner found parameters for wrong car.")
-      params = None
+    # Check if car model matches
+    if params is not None:
+        params = json.loads(params)
+        if params.get('carFingerprint', None) != CP.carFingerprint:
+            cloudlog.info("Parameter learner found parameters for wrong car.")
+            params = None
 
-  if params is None:
-    params = {
-      'carFingerprint': CP.carFingerprint,
-      'angleOffsetAverageInner': 0.0,
-      'angleOffsetAverageOuter': 0.0,
-      'stiffnessFactor': 0.6371,
-      'steerRatioInner': VM.sRi,
-      'steerRatioOuter': VM.sRo,
-    }
-    cloudlog.info("Parameter learner resetting to default values")
+    if params is None:
+        params = {
+            'carFingerprint': CP.carFingerprint,
+            'angleOffsetAverageInner': 0.0,
+            'angleOffsetAverageOuter': 0.0,
+            'stiffnessFactor': 0.6371,
+            'steerRatioInner': VM.sRi,
+            'steerRatioOuter': VM.sRo,
+        }
+        cloudlog.info("Parameter learner resetting to default values")
 
-  cloudlog.info("Parameter starting with: %s" % str(params))
-  localizer = Localizer(disabled_logs=disabled_logs)
+    cloudlog.info("Parameter starting with: %s" % str(params))
+    localizer = Localizer(disabled_logs=disabled_logs)
 
-  learner = ParamsLearner(VM,
-                          angle_offset_inner=params['angleOffsetAverageInner'],
-                          angle_offset_outer=params['angleOffsetAverageOuter'],
-                          stiffness_factor=params['stiffnessFactor'],
-                          steer_ratio_inner=params['steerRatioInner'],
-                          steer_ratio_outer=params['steerRatioOuter'],
-                          learning_rate=LEARNING_RATE)
+    learner = ParamsLearner(VM,
+                            angle_offset_inner=params['angleOffsetAverageInner'],
+                            angle_offset_outer=params['angleOffsetAverageOuter'],
+                            stiffness_factor=params['stiffnessFactor'],
+                            steer_ratio_inner=params['steerRatioInner'],
+                            steer_ratio_outer=params['steerRatioOuter'],
+                            learning_rate=LEARNING_RATE)
 
-  i = 0
-  while True:
-    for socket, event in poller.poll(timeout=1000):
-      log = messaging.recv_one(socket)
-      localizer.handle_log(log)
+    i = 0
+    while True:
+        for socket, event in poller.poll(timeout=1000):
+            log = messaging.recv_one(socket)
+            localizer.handle_log(log)
 
-      if socket is live100_socket:
-        if not localizer.kf.t:
-          continue
+            if socket is live100_socket:
+                if not localizer.kf.t:
+                    continue
 
-        if i % LEARNING_RATE == 0:
-          # live100 is not updating the Kalman Filter, so update KF manually
-          localizer.kf.predict(1e-9 * log.logMonoTime)
+                if i % LEARNING_RATE == 0:
+                    # live100 is not updating the Kalman Filter, so update KF manually
+                    localizer.kf.predict(1e-9 * log.logMonoTime)
 
-          predicted_state = localizer.kf.x
-          yaw_rate = -float(predicted_state[5])
+                    predicted_state = localizer.kf.x
+                    yaw_rate = -float(predicted_state[5])
 
-          steering_angle = math.radians(log.live100.angleSteers)
-          params_valid = learner.update(yaw_rate, log.live100.vEgo, steering_angle, log.live100.active)
+                    steering_angle = math.radians(log.live100.angleSteers)
+                    params_valid = learner.update(yaw_rate, log.live100.vEgo, steering_angle, log.live100.active)
 
-          params = messaging.new_message()
-          params.init('liveParameters')
-          params.liveParameters.valid = bool(params_valid)
-          params.liveParameters.angleOffsetInner = float(math.degrees(learner.ao_i))
-          params.liveParameters.angleOffsetOuter = float(math.degrees(learner.ao_o))
-          params.liveParameters.angleOffsetAverageInner = float(math.degrees(learner.slow_ao_inner))
-          params.liveParameters.angleOffsetAverageOuter = float(math.degrees(learner.slow_ao_outer))
-          params.liveParameters.stiffnessFactor = float(learner.x)
-          params.liveParameters.steerRatioInner = float(learner.sRi)
-          params.liveParameters.steerRatioOuter = float(learner.sRo)
-          live_parameters_socket.send(params.to_bytes())
+                    params = messaging.new_message()
+                    params.init('liveParameters')
+                    params.liveParameters.valid = bool(params_valid)
+                    params.liveParameters.angleOffsetInner = float(math.degrees(learner.ao_inner))
+                    params.liveParameters.angleOffsetOuter = float(math.degrees(learner.ao_outer))
+                    params.liveParameters.angleOffsetAverageInner = float(math.degrees(learner.slow_ao_inner))
+                    params.liveParameters.angleOffsetAverageOuter = float(math.degrees(learner.slow_ao_outer))
+                    params.liveParameters.stiffnessFactor = float(learner.x)
+                    params.liveParameters.steerRatioInner = float(learner.sRi)
+                    params.liveParameters.steerRatioOuter = float(learner.sRo)
+                    live_parameters_socket.send(params.to_bytes())
 
-        if i % 6000 == 0:   # once a minute
-          params = learner.get_values()
-          params['carFingerprint'] = CP.carFingerprint
-          params_reader.put("liveParametersVSRv2", json.dumps(params))
-          params_reader.put("ControlsParams", json.dumps({'angle_model_bias': log.live100.angleModelBias}))
+                if i % 6000 == 0:  # once a minute
+                    params = learner.get_values()
+                    params['carFingerprint'] = CP.carFingerprint
+                    params_reader.put("liveParametersVSRv2", json.dumps(params))
+                    params_reader.put("ControlsParams", json.dumps({'angle_model_bias': log.live100.angleModelBias}))
 
-        i += 1
-      elif socket is camera_odometry_socket:
-        msg = messaging.new_message()
-        msg.init('kalmanOdometry')
-        msg.logMonoTime = log.logMonoTime
-        msg.kalmanOdometry = localizer.liveLocationMsg(log.logMonoTime * 1e-9)
-        kalman_odometry_socket.send(msg.to_bytes())
-      elif socket is sensor_events_socket:
-        pass
+                i += 1
+            elif socket is camera_odometry_socket:
+                msg = messaging.new_message()
+                msg.init('kalmanOdometry')
+                msg.logMonoTime = log.logMonoTime
+                msg.kalmanOdometry = localizer.liveLocationMsg(log.logMonoTime * 1e-9)
+                kalman_odometry_socket.send(msg.to_bytes())
+            elif socket is sensor_events_socket:
+                pass
 
 
 def main(gctx=None, addr="127.0.0.1"):
-  IN_CAR = os.getenv("IN_CAR", False)
-  disabled_logs = os.getenv("DISABLED_LOGS", "").split(",")
+    IN_CAR = os.getenv("IN_CAR", False)
+    disabled_logs = os.getenv("DISABLED_LOGS", "").split(",")
 
-  # No speed for now
-  disabled_logs.append('live100')
-  if IN_CAR:
-    addr = "192.168.5.11"
+    # No speed for now
+    disabled_logs.append('live100')
+    if IN_CAR:
+        addr = "192.168.5.11"
 
-  locationd_thread(gctx, addr, disabled_logs)
+    locationd_thread(gctx, addr, disabled_logs)
 
 
 if __name__ == "__main__":
-  main()
+    main()
