@@ -152,14 +152,14 @@ while True:
   if float(kegman.conf['timeConstant']) < 0 and float(kegman.conf['timeConstant']) != -1:
     kegman.conf['timeConstant'] = "0"
 
-  if float(kegman.conf['timeConstant']) > 3:
-    kegman.conf['timeConstant'] = "3"
+  if float(kegman.conf['timeConstant']) > 10:
+    kegman.conf['timeConstant'] = "10"
 
   if float(kegman.conf['actuatorEffectiveness']) < 0 and float(kegman.conf['actuatorEffectiveness']) != -1:
     kegman.conf['actuatorEffectiveness'] = "0"
 
-  if float(kegman.conf['actuatorEffectiveness']) > 3:
-    kegman.conf['actuatorEffectiveness'] = "3"
+  if float(kegman.conf['actuatorEffectiveness']) > 10:
+    kegman.conf['actuatorEffectiveness'] = "10"
 
   if float(kegman.conf['outerLoopGain']) < 0 and float(kegman.conf['outerLoopGain']) != -1:
     kegman.conf['outerLoopGain'] = "0"
