@@ -213,7 +213,7 @@ def locationd_thread(gctx, addr, disabled_logs):
     params = {
       'carFingerprint': CP.carFingerprint,
       'angleOffsetAverage': 0.0,
-      'stiffnessFactor': 1.0,
+      'stiffnessFactor': 0.6371,
       'steerRatioInner': VM.sRi,
       'steerRatioOuter': VM.sRo,
     }
