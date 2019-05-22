@@ -6,6 +6,7 @@ from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.controls.lib.drive_helpers import get_steer_max, DT
 from common.numpy_fast import clip
 from cereal import log
+from numpy import interp
 
 
 class LatControlINDI(object):
@@ -61,8 +62,10 @@ class LatControlINDI(object):
       self.output_steer = 0.0
       self.delayed_output = 0.0
     else:
-      self.angle_steers_des = path_plan.angleSteers
+      self.angle_steers_des = path_plan.angleSteers / (interp(abs(path_plan.angleSteers), [0,10], [1.0, 1.2]))
       self.rate_steers_des = path_plan.rateSteers
+
+      self.G = interp(abs(angle_steers), [0, 10], [CP.lateralTuning.indi.actuatorEffectiveness, (CP.lateralTuning.indi.actuatorEffectiveness * 2)])
 
       steers_des = math.radians(self.angle_steers_des)
       rate_des = math.radians(self.rate_steers_des)
