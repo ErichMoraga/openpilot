@@ -149,7 +149,7 @@ class ParamsLearner(object):
       #self.x -= self.alpha3 * -2.0*cF0*cR0*l*m*u**3*(ao - sa)*(aF*cF0 - aR*cR0)*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**3)
 
       self.sRi -= self.alpha4 * -2.0*cF0*cR0*l*u*x*(ao - sa)*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRi*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRi**3*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
-  elif active and u > 10.0 and abs(math.degrees(sa)) < 15. and abs(math.degrees(sa)) > 1.2:
+    elif active and u > 10.0 and abs(math.degrees(sa)) < 15. and abs(math.degrees(sa)) > 1.2:
       self.ao -= self.alpha1 * 2.0*cF0*cR0*l*u*x*(1.0*cF0*cR0*l*u*x*(ao - sa) + psi*sRo*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0)))/(sRo**2*(cF0*cR0*l**2*x - m*u**2*(aF*cF0 - aR*cR0))**2)
 
       ao = self.slow_ao
