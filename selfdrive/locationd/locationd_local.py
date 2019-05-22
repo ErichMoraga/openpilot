@@ -200,7 +200,7 @@ def locationd_thread(gctx, addr, disabled_logs):
   VM = VehicleModel(CP)
   cloudlog.info("Parameter learner got CarParams: %s" % CP.carFingerprint)
 
-  params = params_reader.get("LiveParameters")
+  params = params_reader.get("LiveParametersVSR")
 
   # Check if car model matches
   if params is not None:
@@ -262,7 +262,7 @@ def locationd_thread(gctx, addr, disabled_logs):
         if i % 6000 == 0:   # once a minute
           params = learner.get_values()
           params['carFingerprint'] = CP.carFingerprint
-          params_reader.put("LiveParameters", json.dumps(params))
+          params_reader.put("LiveParametersVSR", json.dumps(params))
           params_reader.put("ControlsParams", json.dumps({'angle_model_bias': log.live100.angleModelBias}))
 
         i += 1
