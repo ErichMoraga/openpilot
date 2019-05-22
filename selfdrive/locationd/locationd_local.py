@@ -143,14 +143,14 @@ class ParamsLearner(object):
         m = self.VM.m
 
         x = self.x
-        ao_i = self.ao_i
-        ao_o = self.ao_o
+        ao_i = self.ao_inner
+        ao_o = self.ao_outer
         sRi = self.sRi
         sRo = self.sRo
 
         # Gradient descent:  learn angle offset, tire stiffness and steer ratio.
         if active and u > 18.0 and abs(math.degrees(sa)) < 1.2:
-            self.ao_i -= self.alpha1 * 2.0 * cF0 * cR0 * l * u * x * (
+            self.ao_inner -= self.alpha1 * 2.0 * cF0 * cR0 * l * u * x * (
                         1.0 * cF0 * cR0 * l * u * x * (ao_i - sa) + psi * sRi * (
                             cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
                                      sRi ** 2 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
@@ -171,7 +171,7 @@ class ParamsLearner(object):
                             cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
                                     sRi ** 3 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
         elif active and u > 10.0 and abs(math.degrees(sa)) < 15. and abs(math.degrees(sa)) > 1.2:
-            self.ao_o -= self.alpha1 * 2.0 * cF0 * cR0 * l * u * x * (
+            self.ao_outer -= self.alpha1 * 2.0 * cF0 * cR0 * l * u * x * (
                         1.0 * cF0 * cR0 * l * u * x * (ao_o - sa) + psi * sRo * (
                             cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0))) / (
                                      sRo ** 2 * (cF0 * cR0 * l ** 2 * x - m * u ** 2 * (aF * cF0 - aR * cR0)) ** 2)
@@ -201,8 +201,8 @@ class ParamsLearner(object):
         # s5 = "Stiffnes: % .3f x" % self.x
         # print("{0} {1}".format(s4, s5))
 
-        self.ao_inner = clip(self.ao_i, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
-        self.ao_outer = clip(self.ao_o, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
+        self.ao_inner = clip(self.ao_inner, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
+        self.ao_outer = clip(self.ao_outer, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
         self.slow_ao_inner = clip(self.slow_ao_inner, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
         self.slow_ao_outer = clip(self.slow_ao_outer, -MAX_ANGLE_OFFSET, MAX_ANGLE_OFFSET)
         self.x = clip(self.x, MIN_STIFFNESS, MAX_STIFFNESS)
