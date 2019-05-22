@@ -82,7 +82,7 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 66  # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.70
-      ret.steerRatioInner = 16.80   # unknown end-to-end spec
+      ret.steerRatioInner = 18.00   # unknown end-to-end spec
       ret.steerRatioOuter = 14.80
       tire_stiffness_factor = 0.6371   # hand-tune
       ret.mass = 3045 * CV.LB_TO_KG + std_cargo
