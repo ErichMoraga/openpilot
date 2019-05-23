@@ -183,11 +183,11 @@ class ParamsLearner(object):
 
     # don't check stiffness for validity, as it can change quickly if sRi is off
     if abs(math.degrees(sa)) < 1.2:
-      valid = abs(self.slow_ao_inner) < MAX_ANGLE_OFFSET_TH and \
-      self.sRi > self.MIN_SR_TH and self.sRi < self.MAX_SR_TH
+        valid = abs(self.slow_ao_inner) < MAX_ANGLE_OFFSET_TH and \
+        self.sRi > self.MIN_SR_TH and self.sRi < self.MAX_SR_TH
     else:
-      valid = abs(self.slow_ao_outer) < MAX_ANGLE_OFFSET_TH and \
-      self.sRo > self.MIN_SR_TH and self.sRo < self.MAX_SR_TH
+        valid = abs(self.slow_ao_outer) < MAX_ANGLE_OFFSET_TH and \
+        self.sRo > self.MIN_SR_TH and self.sRo < self.MAX_SR_TH
 
     return valid
 
