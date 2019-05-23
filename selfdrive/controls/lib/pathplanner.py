@@ -140,10 +140,8 @@ class PathPlanner(object):
     plan_send.pathPlan.rProb = float(self.MP.r_prob)
     plan_send.pathPlan.angleSteers = float(self.angle_steers_des_mpc)
     plan_send.pathPlan.rateSteers = float(rate_desired)
-    if abs(angle_steers) < 1.2:
-      plan_send.pathPlan.angleOffsetInner = float(angle_offset_average_inner)
-    else:
-      plan_send.pathPlan.angleOffsetOuter = float(angle_offset_average_outer)
+    plan_send.pathPlan.angleOffsetInner = float(angle_offset_average_inner)
+    plan_send.pathPlan.angleOffsetOuter = float(angle_offset_average_outer)
     plan_send.pathPlan.valid = bool(plan_valid)
     plan_send.pathPlan.paramsValid = bool(live_parameters.liveParameters.valid)
     plan_send.pathPlan.modelValid = bool(not model_dead)
