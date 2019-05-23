@@ -8,6 +8,7 @@ from selfdrive.controls.lib.drive_helpers import get_steer_max, DT
 from common.numpy_fast import clip
 from selfdrive.kegman_conf import kegman_conf
 from cereal import log
+from numpy import interp
 
 
 class LatControlINDI(object):
@@ -93,7 +94,7 @@ class LatControlINDI(object):
       self.output_steer = 0.0
       self.delayed_output = 0.0
     else:
-      self.angle_steers_des = path_plan.angleSteers
+      self.angle_steers_des = path_plan.angleSteers / (interp(abs(path_plan.angleSteers), [0,10], [1.0, 1.2]))
       self.rate_steers_des = path_plan.rateSteers
 
       #self.G = interp(abs(angle_steers), [0, 10], [self.actuatorEffectiveness, (self.actuatorEffectiveness * 2)])
