@@ -54,13 +54,8 @@ class PathPlanner(object):
     angle_steers = CS.carState.steeringAngle
     active = live100.live100.active
 
-    if abs(angle_steers) < 1.2:
-        angle_offset_average_inner = live_parameters.liveParameters.angleOffsetAverageInner
-        angle_offset_bias = live100.live100.angleModelBias + angle_offset_average_inner
-    else:
-        angle_offset_average_outer = live_parameters.liveParameters.angleOffsetAverageOuter
-        angle_offset_bias = live100.live100.angleModelBias + angle_offset_average_outer
-
+    angle_offset_average = live_parameters.liveParameters.angleOffsetAverage
+    angle_offset_bias = live100.live100.angleModelBias + angle_offset_average
 
     self.MP.update(v_ego, md)
 
@@ -75,9 +70,9 @@ class PathPlanner(object):
 
     # account for actuation delay
     if abs(angle_steers) < 1.2:
-        self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset_average_inner, curvature_factor, VM.sRi, CP.steerActuatorDelay)
+        self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset_average, curvature_factor, VM.sRi, CP.steerActuatorDelay)
     else:
-        self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset_average_outer, curvature_factor, VM.sRo, CP.steerActuatorDelay)
+        self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset_average, curvature_factor, VM.sRo, CP.steerActuatorDelay)
 
     v_ego_mpc = max(v_ego, 5.0)  # avoid mpc roughness due to low speed
     self.libmpc.run_mpc(self.cur_state, self.mpc_solution,
@@ -140,8 +135,7 @@ class PathPlanner(object):
     plan_send.pathPlan.rProb = float(self.MP.r_prob)
     plan_send.pathPlan.angleSteers = float(self.angle_steers_des_mpc)
     plan_send.pathPlan.rateSteers = float(rate_desired)
-    plan_send.pathPlan.angleOffsetInner = float(angle_offset_average_inner)
-    plan_send.pathPlan.angleOffsetOuter = float(angle_offset_average_outer)
+    plan_send.pathPlan.angleOffset = float(angle_offset_average)
     plan_send.pathPlan.valid = bool(plan_valid)
     plan_send.pathPlan.paramsValid = bool(live_parameters.liveParameters.valid)
     plan_send.pathPlan.modelValid = bool(not model_dead)

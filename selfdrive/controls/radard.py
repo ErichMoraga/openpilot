@@ -179,10 +179,7 @@ def radard_thread(gctx=None):
       path_y = np.polyval(MP.d_poly, path_x)
     else:
       # use path from steer, set angle_offset to 0 it does not only report the physical offset
-      if abs(steer_angle) < 1.2:
-          path_y = calc_lookahead_offset(v_ego, steer_angle, path_x, VM, angle_offset=live_parameters.liveParameters.angleOffsetAverageInner)[0]
-      else:
-          path_y = calc_lookahead_offset(v_ego, steer_angle, path_x, VM, angle_offset=live_parameters.liveParameters.angleOffsetAverageOuter)[0]
+      path_y = calc_lookahead_offset(v_ego, steer_angle, path_x, VM, angle_offset=live_parameters.liveParameters.angleOffsetAverage)[0]
 
     # *** remove missing points from meta data ***
     for ids in tracks.keys():

@@ -67,7 +67,7 @@ keys = {
   "IsUpdateAvailable": TxType.PERSISTENT,
   "IsUploadVideoOverCellularEnabled": TxType.PERSISTENT,
   "LimitSetSpeed": TxType.PERSISTENT,
-  "liveParametersVSRv2": TxType.PERSISTENT,
+  "LiveParametersVSR": TxType.PERSISTENT,
   "LongitudinalControl": TxType.PERSISTENT,
   "Passive": TxType.PERSISTENT,
   "RecordFront": TxType.PERSISTENT,

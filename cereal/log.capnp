@@ -647,8 +647,7 @@ struct PathPlan {
   valid @9 :Bool;
   paramsValid @10 :Bool;
   modelValid @12 :Bool;
-  angleOffsetInner @11 :Float32;
-  angleOffsetOuter @14 :Float32;
+  angleOffset @11 :Float32;
 }
 
 struct LiveLocationData {
@@ -1640,10 +1639,8 @@ struct Boot {
 struct LiveParametersData {
   valid @0 :Bool;
   gyroBias @1 :Float32;
-  angleOffsetInner @2 :Float32;
-  angleOffsetOuter @8 :Float32;
-  angleOffsetAverageInner @3 :Float32;
-  angleOffsetAverageOuter @7 :Float32;
+  angleOffset @2 :Float32;
+  angleOffsetAverage @3 :Float32;
   stiffnessFactor @4 :Float32;
   steerRatioInner @5 :Float32;
   steerRatioOuter @6 :Float32;
