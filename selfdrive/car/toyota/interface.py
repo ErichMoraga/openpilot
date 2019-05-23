@@ -82,16 +82,16 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 66  # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.70
-      ret.steerRatioInner = 16.00   # unknown end-to-end spec
-      ret.steerRatioOuter = 14.00
+      ret.steerRatioInner = 18.00   # unknown end-to-end spec
+      ret.steerRatioOuter = 14.80
       tire_stiffness_factor = 0.6371   # hand-tune
       ret.mass = 3045 * CV.LB_TO_KG + std_cargo
 
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 4.0
       ret.lateralTuning.indi.outerLoopGain = 3.0
-      ret.lateralTuning.indi.timeConstant = 1.0
-      ret.lateralTuning.indi.actuatorEffectiveness = 1.0
+      ret.lateralTuning.indi.timeConstant = 2.5
+      ret.lateralTuning.indi.actuatorEffectiveness = 2.0
 
       ret.steerActuatorDelay = 0.5
       ret.steerRateCost = 0.5
@@ -101,7 +101,7 @@ class CarInterface(object):
       ret.safetyParam = 73  # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.65
       ret.steerRatioInner = 16.30   # 14.5 is spec end-to-end
-      ret.steerRatioOuter = 16.30
+      ret.steerRatioOuter = 14.5
       tire_stiffness_factor = 0.5533
       ret.mass = 3650 * CV.LB_TO_KG + std_cargo  # mean between normal and hybrid
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.05]]
@@ -123,7 +123,7 @@ class CarInterface(object):
       ret.safetyParam = 100 # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.79
       ret.steerRatioInner = 16.0  # 14.8 is spec end-to-end
-      ret.steerRatioOuter = 16.0
+      ret.steerRatioOuter = 14.8
       tire_stiffness_factor = 0.444  # not optimized yet
       ret.mass = 4481 * CV.LB_TO_KG + std_cargo  # mean between min and max
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
@@ -166,7 +166,7 @@ class CarInterface(object):
       stop_and_go = False
       ret.safetyParam = 73 # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.82
-      ret.steerRatioInner = 14.8 #Found at https://pressroom.toyota.com/releases/2016+avalon+product+specs.download
+      ret.steerRatioInner = 16.0 #Found at https://pressroom.toyota.com/releases/2016+avalon+product+specs.download
       ret.steerRatioOuter = 14.8
       tire_stiffness_factor = 0.7983
       ret.mass = 3505 * CV.LB_TO_KG + std_cargo  # mean between normal and hybrid
@@ -177,7 +177,7 @@ class CarInterface(object):
       stop_and_go = True
       ret.safetyParam = 100
       ret.wheelbase = 2.68986
-      ret.steerRatioInner = 14.3
+      ret.steerRatioInner = 15.0
       ret.steerRatioOuter = 14.3
       tire_stiffness_factor = 0.7933
       ret.mass = 3370. * CV.LB_TO_KG + std_cargo
