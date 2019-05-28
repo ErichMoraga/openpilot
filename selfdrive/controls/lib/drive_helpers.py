@@ -66,8 +66,9 @@ def learn_angle_model_bias(lateral_control, v_ego, angle_model_bias, c_poly, c_p
   # while being in the middle of the lane
   min_offset = -5.  # deg
   max_offset = 5.  # deg
-  alpha = 1. / 36000.  # correct by 1 deg in 2 mins, at 30m/s, with 50cm of error, at 20Hz
+  alpha = 1. / 4500.  # correct by 1 deg in 15 seconds, at 30m/s, with 50cm of error, at 20Hz
   min_learn_speed = 1.
+  angle_model_bias_center = 0
 
   # learn less at low speed or when turning
   slow_factor = 1. / (1. + 0.02 * abs(angle_steers) * v_ego)
@@ -75,8 +76,13 @@ def learn_angle_model_bias(lateral_control, v_ego, angle_model_bias, c_poly, c_p
 
   # only learn if lateral control is active and if driver is not overriding:
   if lateral_control and not steer_override:
-    angle_model_bias += c_poly[3] * alpha_v
-    angle_model_bias = clip(angle_model_bias, min_offset, max_offset)
+    if abs(angle_steers) < 3:
+        angle_model_bias_center += c_poly[3] * alpha_v
+        angle_model_bias_center = clip(angle_model_bias_center, min_offset, max_offset)
+        angle_model_bias = angle_model_bias_center
+    else:
+        angle_model_bias = interp(angle_steers, [-10, 0, 10], [3, 0, -3])
+
 
   return angle_model_bias
 
