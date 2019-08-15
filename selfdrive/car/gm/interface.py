@@ -46,19 +46,20 @@ class CarInterface(object):
     return 1.0
 
   @staticmethod
-  def get_params(candidate, fingerprint, vin=""):
+  def get_params(candidate, fingerprint, vin="", is_panda_black=False):
     ret = car.CarParams.new_message()
 
     ret.carName = "gm"
     ret.carFingerprint = candidate
     ret.carVin = vin
+    ret.isPandaBlack = is_panda_black
 
     ret.enableCruise = False
 
     # Presence of a camera on the object bus is ok.
     # Have to go to read_only if ASCM is online (ACC-enabled cars),
     # or camera is on powertrain bus (LKA cars without ACC).
-    ret.enableCamera = not any(x for x in STOCK_CONTROL_MSGS[candidate] if x in fingerprint)
+    ret.enableCamera = not any(x for x in STOCK_CONTROL_MSGS[candidate] if x in fingerprint) or is_panda_black
     ret.openpilotLongitudinalControl = ret.enableCamera
     tire_stiffness_factor = 0.444  # not optimized yet
 
@@ -170,15 +171,15 @@ class CarInterface(object):
     return ret
 
   # returns a car.CarState
-  def update(self, c):
-    can_rcv_valid, _ = self.pt_cp.update(int(sec_since_boot() * 1e9), True)
+  def update(self, c, can_strings):
+    self.pt_cp.update_strings(int(sec_since_boot() * 1e9), can_strings)
 
     self.CS.update(self.pt_cp)
 
     # create message
     ret = car.CarState.new_message()
 
-    ret.canValid = can_rcv_valid and self.pt_cp.can_valid
+    ret.canValid = self.pt_cp.can_valid
 
     # speeds
     ret.vEgo = self.CS.v_ego

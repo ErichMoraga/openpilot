@@ -129,12 +129,13 @@ class CarInterface(object):
     return float(max(max_accel, a_target / A_ACC_MAX)) * min(speedLimiter, accelLimiter)
 
   @staticmethod
-  def get_params(candidate, fingerprint, vin=""):
+  def get_params(candidate, fingerprint, vin="", is_panda_black=False):
 
     ret = car.CarParams.new_message()
     ret.carName = "honda"
     ret.carFingerprint = candidate
     ret.carVin = vin
+    ret.isPandaBlack = is_panda_black
 
     if candidate in HONDA_BOSCH:
       ret.safetyModel = car.CarParams.SafetyModel.hondaBosch
@@ -143,7 +144,7 @@ class CarInterface(object):
       ret.openpilotLongitudinalControl = False
     else:
       ret.safetyModel = car.CarParams.SafetyModel.honda
-      ret.enableCamera = not any(x for x in CAMERA_MSGS if x in fingerprint)
+      ret.enableCamera = not any(x for x in CAMERA_MSGS if x in fingerprint) or is_panda_black
       ret.enableGasInterceptor = 0x201 in fingerprint
       ret.openpilotLongitudinalControl = ret.enableCamera
 
@@ -167,7 +168,7 @@ class CarInterface(object):
       ret.mass = CivicParams.MASS
       ret.wheelbase = CivicParams.WHEELBASE
       ret.centerToFront = CivicParams.CENTER_TO_FRONT
-      ret.steerRatio = 14.63  # 10.93 is end-to-end spec
+      ret.steerRatio = 15.38  # 10.93 is end-to-end spec
       tire_stiffness_factor = 1.
       # Civic at comma has modified steering FW, so different tuning for the Neo in that car
       is_fw_modified = os.getenv("DONGLE_ID") in ['99c94dc769b5d96e']
@@ -187,7 +188,7 @@ class CarInterface(object):
       ret.mass = 3279. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.83
       ret.centerToFront = ret.wheelbase * 0.39
-      ret.steerRatio = 15.96  # 11.82 is spec end-to-end
+      ret.steerRatio = 16.33  # 11.82 is spec end-to-end
       tire_stiffness_factor = 0.8467
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.18]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -213,7 +214,7 @@ class CarInterface(object):
       ret.mass = 3572. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.62
       ret.centerToFront = ret.wheelbase * 0.41
-      ret.steerRatio = 15.3         # as spec
+      ret.steerRatio = 16.89         # as spec
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -293,7 +294,7 @@ class CarInterface(object):
       ret.mass = 4204. * CV.LB_TO_KG + STD_CARGO_KG # average weight
       ret.wheelbase = 2.82
       ret.centerToFront = ret.wheelbase * 0.428 # average weight distribution
-      ret.steerRatio = 16.0         # as spec
+      ret.steerRatio = 17.25         # as spec
       tire_stiffness_factor = 0.444 # not optimized yet
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.38], [0.11]]
       ret.longitudinalTuning.kpBP = [0., 5., 35.]
@@ -358,18 +359,17 @@ class CarInterface(object):
     return ret
 
   # returns a car.CarState
-  def update(self, c):
+  def update(self, c, can_strings):
     # ******************* do can recv *******************
-    canMonoTimes = []
-    can_rcv_valid, _ = self.cp.update(int(sec_since_boot() * 1e9), True)
-    cam_rcv_valid, _ = self.cp_cam.update(int(sec_since_boot() * 1e9), False)
+    self.cp.update_strings(int(sec_since_boot() * 1e9), can_strings)
+    self.cp_cam.update_strings(int(sec_since_boot() * 1e9), can_strings)
 
     self.CS.update(self.cp, self.cp_cam)
 
     # create message
     ret = car.CarState.new_message()
 
-    ret.canValid = can_rcv_valid and cam_rcv_valid and self.cp.can_valid
+    ret.canValid = self.cp.can_valid
 
     # speeds
     ret.vEgo = self.CS.v_ego
@@ -547,7 +547,6 @@ class CarInterface(object):
       events.append(create_event('buttonEnable', [ET.ENABLE]))
 
     ret.events = events
-    ret.canMonoTimes = canMonoTimes
 
     # update previous brake/gas pressed
     self.gas_pressed_prev = ret.gasPressed

@@ -1,9 +1,9 @@
 import numpy as np
 from common.kalman.simple_kalman import KF1D
-from selfdrive.can.parser import CANParser
 from selfdrive.can.can_define import CANDefine
+from selfdrive.can.parser import CANParser
 from selfdrive.config import Conversions as CV
-from selfdrive.car.toyota.values import CAR, DBC, STEER_THRESHOLD, NO_DSU_CAR
+from selfdrive.car.toyota.values import CAR, DBC, STEER_THRESHOLD, TSS2_CAR
 
 def parse_gear_shifter(gear, vals):
 
@@ -33,6 +33,7 @@ def get_can_parser(CP):
     ("SEATBELT_DRIVER_UNLATCHED", "SEATS_DOORS", 1),
     ("TC_DISABLED", "ESP_CONTROL", 1),
     ("STEER_FRACTION", "STEER_ANGLE_SENSOR", 0),
+    ("ZORRO_STEER", "SECONDARY_STEER_ANGLE", 0),
     ("STEER_RATE", "STEER_ANGLE_SENSOR", 0),
     ("CRUISE_ACTIVE", "PCM_CRUISE", 0),
     ("CRUISE_STATE", "PCM_CRUISE", 0),
@@ -59,7 +60,7 @@ def get_can_parser(CP):
     ("EPS_STATUS", 25),
   ]
 
-  if CP.carFingerprint in NO_DSU_CAR:
+  if CP.carFingerprint in TSS2_CAR:
     signals += [("STEER_ANGLE", "STEER_TORQUE_SENSOR", 0)]
   else:
     signals += [("STEER_ANGLE", "STEER_ANGLE_SENSOR", 0)]
@@ -70,9 +71,10 @@ def get_can_parser(CP):
   # add gas interceptor reading if we are using it
   if CP.enableGasInterceptor:
     signals.append(("INTERCEPTOR_GAS", "GAS_SENSOR", 0))
+    signals.append(("INTERCEPTOR_GAS2", "GAS_SENSOR", 0))
     checks.append(("GAS_SENSOR", 50))
 
-  return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0, timeout=100)
+  return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
 
 
 def get_cam_can_parser(CP):
@@ -82,7 +84,7 @@ def get_cam_can_parser(CP):
   # use steering message to check if panda is connected to frc
   checks = [("STEERING_LKA", 42)]
 
-  return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2, timeout=100)
+  return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2)
 
 
 class CarState(object):
@@ -93,6 +95,8 @@ class CarState(object):
     self.shifter_values = self.can_define.dv["GEAR_PACKET"]['GEAR']
     self.left_blinker_on = 0
     self.right_blinker_on = 0
+    self.isoffset = 0
+    self.offset = 0
 
     # initialize can parser
     self.car_fingerprint = CP.carFingerprint
@@ -118,7 +122,7 @@ class CarState(object):
 
     self.brake_pressed = cp.vl["BRAKE_MODULE"]['BRAKE_PRESSED']
     if self.CP.enableGasInterceptor:
-      self.pedal_gas = cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']
+      self.pedal_gas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS'] + cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS2']) / 2.
     else:
       self.pedal_gas = cp.vl["GAS_PEDAL"]['GAS_PEDAL']
     self.car_gas = self.pedal_gas
@@ -139,13 +143,16 @@ class CarState(object):
     v_ego_x = self.v_ego_kf.update(v_wheel)
     self.v_ego = float(v_ego_x[0])
     self.a_ego = float(v_ego_x[1])
-    self.standstill = not v_wheel > 0.001
+    self.standstill = False
 
-    if self.CP.carFingerprint in NO_DSU_CAR:
-      self.angle_steers = cp.vl["STEER_TORQUE_SENSOR"]['STEER_ANGLE']
-    else:
-      self.angle_steers = cp.vl["STEER_ANGLE_SENSOR"]['STEER_ANGLE'] + cp.vl["STEER_ANGLE_SENSOR"]['STEER_FRACTION']
+    self.angle_steers_old = cp.vl["STEER_ANGLE_SENSOR"]['STEER_ANGLE'] + cp.vl["STEER_ANGLE_SENSOR"]['STEER_FRACTION']
     self.angle_steers_rate = cp.vl["STEER_ANGLE_SENSOR"]['STEER_RATE']
+    self.angle_steers = cp.vl["SECONDARY_STEER_ANGLE"]['ZORRO_STEER'] - self.offset
+    if self.isoffset == 0:
+        self.offset = self.angle_steers - self.angle_steers_old
+        self.isoffset = 1
+    if (self.angle_steers - self.angle_steers_old) > 2.5:
+        self.angle_steers = self.angle_steers_old
     can_gear = int(cp.vl["GEAR_PACKET"]['GEAR'])
     self.gear_shifter = parse_gear_shifter(can_gear, self.shifter_values)
     self.main_on = cp.vl["PCM_CRUISE_2"]['MAIN_ON']
