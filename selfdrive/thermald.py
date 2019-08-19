@@ -79,9 +79,9 @@ _TEMP_THRS_H = [50., 65., 80., 10000]
 # temp thresholds to control fan speed - low hysteresis
 _TEMP_THRS_L = [42.5, 57.5, 72.5, 10000]
 # fan speed options
-_FAN_SPEEDS = [0, 16384, 32768, 65535]
+_FAN_SPEEDS = [0, 65535, 65535, 65535] # Noctua fan is super quiet, so it can run on high most of the time.
 # max fan speed only allowed if battery is hot
-_BAT_TEMP_THERSHOLD = 45.
+_BAT_TEMP_THERSHOLD = 30. # No need to wait for the battery to get hot, when you have a Noctua fan.
 
 
 def handle_fan(max_cpu_temp, bat_temp, fan_speed):
@@ -186,10 +186,10 @@ def thermald_thread():
     msg.thermal.fanSpeed = fan_speed
 
     # thermal logic with hysterisis
-    if max_cpu_temp > 107.:
+    if max_cpu_temp > 107. or bat_temp >= 63.:
       # onroad not allowed
       thermal_status = ThermalStatus.danger
-    elif max_comp_temp > 92.5: # CPU throttling starts around ~90C
+    elif max_comp_temp > 92.5 or bat_temp > 60.: # CPU throttling starts around ~90C
       # hysteresis between onroad not allowed and engage not allowed
       thermal_status = clip(thermal_status, ThermalStatus.red, ThermalStatus.danger)
     elif max_cpu_temp > 87.5:
