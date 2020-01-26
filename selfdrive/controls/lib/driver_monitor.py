@@ -4,7 +4,7 @@ from selfdrive.controls.lib.drive_helpers import create_event, EventTypes as ET
 from common.filter_simple import FirstOrderFilter
 from common.stat_live import RunningStatFilter
 
-_AWARENESS_TIME = 100.  # 1.6 minutes limit without user touching steering wheels make the car enter a terminal status
+_AWARENESS_TIME = 900.  # 1.6 minutes limit without user touching steering wheels make the car enter a terminal status
 _AWARENESS_PRE_TIME_TILL_TERMINAL = 25.  # a first alert is issued 25s before expiration
 _AWARENESS_PROMPT_TIME_TILL_TERMINAL = 15.  # a second alert is issued 15s before start decelerating the car
 _DISTRACTED_TIME = 11.
@@ -149,9 +149,9 @@ class DriverStatus():
     pose_metric = np.sqrt(yaw_error**2 + pitch_error**2)
 
     if pose_metric > _METRIC_THRESHOLD*pose.cfactor:
-      return DistractedType.BAD_POSE
+      return DistractedType.NOT_DISTRACTED
     elif (blink.left_blink + blink.right_blink)*0.5 > _BLINK_THRESHOLD*blink.cfactor:
-      return DistractedType.BAD_BLINK
+      return DistractedType.NOT_DISTRACTED
     else:
       return DistractedType.NOT_DISTRACTED
 
