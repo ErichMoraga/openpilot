@@ -274,8 +274,23 @@ Safety and Testing
 
 Testing on PC
 ------
+For simplified development and experimentation, openpilot runs in the CARLA driving simulator, which allows you to develop openpilot without a car.
 
-Check out the tools directory in master: lots of tools you can use to replay driving data, test and develop openpilot from your pc.
+Steps:
+1) Start the CARLA server on first terminal
+```
+bash -c "$(curl https://raw.githubusercontent.com/commaai/openpilot/master/tools/sim/start_carla.sh)"
+```
+2) Start openpilot on second terminal
+```
+bash -c "$(curl https://raw.githubusercontent.com/commaai/openpilot/master/tools/sim/start_openpilot_docker.sh)"
+```
+3) Press 1 to engage openpilot
+
+See the full [README](tools/sim/README.md)
+
+You should also take a look at the tools directory in master: lots of tools you can use to replay driving data, test, and develop openpilot from your PC.
+
 
 Community and Contributing
 ------
