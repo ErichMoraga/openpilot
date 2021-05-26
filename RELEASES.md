@@ -1,3 +1,10 @@
+Version 0.8.5 (2021-XX-XX)
+========================
+ * NEOS update: improved reliability and stability
+ * Smart model-based Forward Collision Warning
+ * Hyundai Elantra 2021 support thanks to CruiseBrantley!
+ * Lexus UX Hybrid 2019 support thanks to brianhaugen2!
+
 Version 0.8.4 (2021-05-17)
 ========================
  * Delay controls start until system is ready

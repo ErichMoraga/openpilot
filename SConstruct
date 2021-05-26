@@ -128,6 +128,7 @@ else:
     libpath = [
       "#phonelibs/snpe/x86_64-linux-clang",
       "#phonelibs/libyuv/x64/lib",
+      "#phonelibs/mapbox-gl-native-qt/x86_64",
       "#cereal",
       "#selfdrive/common",
       "/usr/lib",
@@ -190,6 +191,7 @@ env = Environment(
     "#phonelibs/android_system_core/include",
     "#phonelibs/linux/include",
     "#phonelibs/snpe/include",
+    "#phonelibs/mapbox-gl-native-qt/include",
     "#phonelibs/nanovg",
     "#phonelibs/qrcode",
     "#phonelibs",
@@ -227,10 +229,8 @@ if os.environ.get('SCONS_CACHE'):
   if TICI:
     cache_dir = '/data/scons_cache'
 
-  if QCOM_REPLAY:
-    cache_dir = '/tmp/scons_cache_qcom_replay'
-
   CacheDir(cache_dir)
+  Clean(["."], cache_dir)
 
 node_interval = 5
 node_count = 0
@@ -272,7 +272,7 @@ Export('envCython')
 
 # Qt build environment
 qt_env = env.Clone()
-qt_modules = ["Widgets", "Gui", "Core", "Network", "Concurrent", "Multimedia", "Quick", "Qml", "QuickWidgets"]
+qt_modules = ["Widgets", "Gui", "Core", "Network", "Concurrent", "Multimedia", "Quick", "Qml", "QuickWidgets", "Location", "Positioning"]
 if arch != "aarch64":
   qt_modules += ["DBus"]
 

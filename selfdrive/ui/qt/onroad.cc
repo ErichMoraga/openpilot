@@ -7,16 +7,41 @@
 #include "selfdrive/ui/paint.h"
 #include "selfdrive/ui/qt/util.h"
 
+#ifdef ENABLE_MAPS
+#include "selfdrive/ui/qt/maps/map.h"
+#endif
+
 OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
-  layout = new QStackedLayout();
+  layout = new QStackedLayout(this);
   layout->setStackingMode(QStackedLayout::StackAll);
 
   // old UI on bottom
   nvg = new NvgWindow(this);
-  layout->addWidget(nvg);
   QObject::connect(this, &OnroadWindow::update, nvg, &NvgWindow::update);
 
+  QHBoxLayout* split = new QHBoxLayout();
+  split->setContentsMargins(0, 0, 0, 0);
+  split->setSpacing(0);
+  split->addWidget(nvg);
+
+#ifdef ENABLE_MAPS
+  QString token = QString::fromStdString(Params().get("MapboxToken"));
+  if (!token.isEmpty()){
+    QMapboxGLSettings settings;
+    settings.setCacheDatabasePath("/tmp/mbgl-cache.db");
+    settings.setCacheDatabaseMaximumSize(20 * 1024 * 1024);
+    settings.setAccessToken(token.trimmed());
+    map = new MapWindow(settings);
+    split->addWidget(map);
+  }
+#endif
+
+  QWidget * split_wrapper = new QWidget;
+  split_wrapper->setLayout(split);
+  layout->addWidget(split_wrapper);
+
   alerts = new OnroadAlerts(this);
+  alerts->setAttribute(Qt::WA_TransparentForMouseEvents, true);
   QObject::connect(this, &OnroadWindow::update, alerts, &OnroadAlerts::updateState);
   QObject::connect(this, &OnroadWindow::offroadTransition, alerts, &OnroadAlerts::offroadTransition);
   layout->addWidget(alerts);
@@ -44,7 +69,7 @@ void OnroadAlerts::updateState(const UIState &s) {
     volume = util::map_val(sm["carState"].getCarState().getVEgo(), 0.f, 20.f,
                            Hardware::MIN_VOLUME, Hardware::MAX_VOLUME);
   }
-  if (s.scene.deviceState.getStarted()) {
+  if (sm["deviceState"].getDeviceState().getStarted()) {
     if (sm.updated("controlsState")) {
       const cereal::ControlsState::Reader &cs = sm["controlsState"].getControlsState();
       updateAlert(QString::fromStdString(cs.getAlertText1()), QString::fromStdString(cs.getAlertText2()),
@@ -191,6 +216,10 @@ void NvgWindow::update(const UIState &s) {
     makeCurrent();
   }
   repaint();
+}
+
+void NvgWindow::resizeGL(int w, int h) {
+  ui_resize(&QUIState::ui_state, w, h);
 }
 
 void NvgWindow::paintGL() {

@@ -3,7 +3,6 @@
 #include <atomic>
 #include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 
 #include <QObject>
@@ -81,16 +80,9 @@ typedef struct UIScene {
 
   cereal::PandaState::PandaType pandaType;
 
-  cereal::DeviceState::Reader deviceState;
-  cereal::RadarState::LeadData::Reader lead_data[2];
-  cereal::CarState::Reader car_state;
-  cereal::ControlsState::Reader controls_state;
-  cereal::DriverState::Reader driver_state;
-  cereal::DriverMonitoringState::Reader dmonitoring_state;
-
   // gps
   int satelliteCount;
-  bool gpsOK;
+  float gpsAccuracy;
 
   // modelV2
   float lane_line_probs[4];
@@ -111,6 +103,7 @@ typedef struct UIState {
   VisionIpcClient * vipc_client;
   VisionIpcClient * vipc_client_front;
   VisionIpcClient * vipc_client_rear;
+  VisionIpcClient * vipc_client_wide;
   VisionBuf * last_frame;
 
   // framebuffer
