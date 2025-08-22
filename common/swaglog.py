@@ -129,7 +129,7 @@ log.setLevel(logging.DEBUG)
 
 outhandler = logging.StreamHandler()
 
-print_level = os.environ.get('LOGPRINT', 'warning')
+print_level = os.environ.get('LOGPRINT', 'info')
 if print_level == 'debug':
   outhandler.setLevel(logging.DEBUG)
 elif print_level == 'info':
